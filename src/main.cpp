@@ -127,7 +127,7 @@ void TriangleWindow::initialize()
 void TriangleWindow::render()
 {
     const qreal retinaScale = devicePixelRatio();
-    glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+    glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -136,7 +136,7 @@ void TriangleWindow::render()
     QMatrix4x4 matrix;
     matrix.perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f);
     matrix.translate(0, 0, -2);
-    matrix.rotate(100.0f * m_frame / screen()->refreshRate(), 0, 1, 0);
+    matrix.rotate(100.0f * m_frame / static_cast<float>(screen()->refreshRate()), 0, 1, 0);
 
     m_program->setUniformValue(m_matrixUniform, matrix);
 
