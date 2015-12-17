@@ -75,4 +75,3 @@ private:
     QOpenGLContext *m_context;
     QOpenGLPaintDevice *m_device;
 };
-
