@@ -57,9 +57,9 @@ public:
 
     virtual void initialize();
 
+public slots:
     void setAnimating(bool animating);
 
-public slots:
     void renderLater();
     void renderNow();
 
