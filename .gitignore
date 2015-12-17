@@ -37,3 +37,4 @@ build/*
 bin/*
 
 *.swp
+CMakeLists.txt.user
