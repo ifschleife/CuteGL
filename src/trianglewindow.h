@@ -1,16 +1,22 @@
-#include "openglwindow.h"
+#pragma once
+
+#include <QOpenGLFunctions>
+#include <QOpenGLWindow>
 
 
 class QOpenGLShaderProgram;
 
 
-class TriangleWindow : public OpenGLWindow
+class TriangleWindow : public QOpenGLWindow, protected QOpenGLFunctions
 {
 public:
     TriangleWindow();
 
-    void initialize() override;
-    void render() override;
+    void initializeGL() override;
+    void paintGL() override;
+
+public slots:
+    void setAnimating(bool animating);
 
 private:
     GLuint loadShader(GLenum type, const char *source);

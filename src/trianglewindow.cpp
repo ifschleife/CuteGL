@@ -9,6 +9,17 @@
 
 namespace
 {
+    // template for overloaded function selection, courtesy of
+    // http://stackoverflow.com/a/16795664/578536
+    template<typename... Args> struct SELECT
+    {
+        template<typename C, typename R>
+        static constexpr auto OVERLOAD_OF(R(C::*pmf)(Args...)) -> decltype(pmf)
+        {
+            return pmf;
+        }
+    };
+
     static const char *vertexShaderSource =
         "attribute highp vec4 posAttr;\n"
         "attribute lowp vec4 colAttr;\n"
@@ -41,8 +52,10 @@ GLuint TriangleWindow::loadShader(GLenum type, const char *source)
     return shader;
 }
 
-void TriangleWindow::initialize()
+void TriangleWindow::initializeGL()
 {
+    initializeOpenGLFunctions();
+
     m_program = new QOpenGLShaderProgram(this);
     m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
     m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
@@ -52,7 +65,7 @@ void TriangleWindow::initialize()
     m_matrixUniform = m_program->uniformLocation("matrix");
 }
 
-void TriangleWindow::render()
+void TriangleWindow::paintGL()
 {
     const qreal retinaScale = devicePixelRatio();
     glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
@@ -92,4 +105,22 @@ void TriangleWindow::render()
     m_program->release();
 
     ++m_frame;
+}
+
+void TriangleWindow::setAnimating(bool animating)
+{
+    if (animating)
+    {
+        // Animate continuously, throttled by the blocking swapBuffers() call the
+        // QOpenGLWindow internally executes after each paint. Once that is done
+        // (frameSwapped signal is emitted), we schedule a new update. This
+        // obviously assumes that the swap interval (see
+        // QSurfaceFormat::setSwapInterval()) is non-zero.
+        connect(this, &TriangleWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&TriangleWindow::update));
+        update();
+    }
+    else
+    {
+        disconnect(this, &TriangleWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&TriangleWindow::update));
+    }
 }

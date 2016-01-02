@@ -1,13 +1,11 @@
 set(SOURCES
     main.cpp
     mainwindow.cpp
-    openglwindow.cpp
     trianglewindow.cpp
     )
 
 set(HEADERS
     mainwindow.h
-    openglwindow.h
     trianglewindow.h
     )
 
