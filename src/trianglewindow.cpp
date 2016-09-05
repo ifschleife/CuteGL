@@ -21,30 +21,32 @@ namespace
     };
 
     static const char *vertexShaderSource =
-        "attribute highp vec4 posAttr;\n"
-        "attribute lowp vec4 colAttr;\n"
-        "varying lowp vec4 col;\n"
-        "uniform highp mat4 matrix;\n"
+        "#version 450 compatibility\n"
+        "in vec2 posAttr;\n"
+        "in vec3 colAttr;\n"
+        "out vec3 col;\n"
+        "uniform mat4 matrix;\n"
         "void main() {\n"
         "   col = colAttr;\n"
-        "   gl_Position = matrix * posAttr;\n"
+        "   gl_Position = matrix * vec4(posAttr, 0.0, 1.0);\n"
         "}\n";
 
     static const char *fragmentShaderSource =
-        "varying lowp vec4 col;\n"
+        "#version 450 compatibility\n"
+        "in vec3 col;\n"
         "void main() {\n"
-        "   gl_FragColor = col;\n"
+        "   gl_FragColor = vec4(col, 1.0);\n"
         "}\n";
 }
 
 
 TriangleWindow::TriangleWindow()
-    : m_program(0)
+    : m_program(nullptr)
     , m_frame(0)
 {
 }
 
-GLuint TriangleWindow::loadShader(GLenum type, const char *source)
+GLuint TriangleWindow::loadShader(GLenum type, const char* source)
 {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, 0);

@@ -14,9 +14,9 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget* parent = 0);
-    ~MainWindow();
+    ~MainWindow() override;
 
 private:
-    std::unique_ptr<TriangleWindow> _glWindow;
-    std::unique_ptr<Ui::MainWindow> _ui;
+    std::unique_ptr<TriangleWindow> m_glWindow;
+    std::unique_ptr<Ui::MainWindow> m_ui;
 };
