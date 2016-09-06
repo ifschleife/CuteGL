@@ -4,6 +4,8 @@
 #include <QOpenGLShaderProgram>
 #include <QScreen>
 
+
+#include <chrono>
 #include <qmath.h>
 
 
@@ -65,6 +67,29 @@ void TriangleWindow::initializeGL()
     m_posAttr = m_program->attributeLocation("posAttr");
     m_colAttr = m_program->attributeLocation("colAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
+
+	GLfloat vertices[] = {
+		0.0f, 0.707f,
+		-0.5f, -0.5f,
+		0.5f, -0.5f
+	};
+
+	glGenBuffers(1, &m_vbo_vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+	GLfloat colors[] = {
+	    1.0f, 0.0f, 0.0f,
+	    0.0f, 1.0f, 0.0f,
+	    0.0f, 0.0f, 1.0f
+	};
+	glGenBuffers(1, &m_vbo_colors);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_colors);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 }
 
 void TriangleWindow::paintGL()
@@ -81,28 +106,28 @@ void TriangleWindow::paintGL()
 
     m_program->setUniformValue(m_matrixUniform, matrix);
 
-    GLfloat vertices[] = {
-        0.0f, 0.707f,
-        -0.5f, -0.5f,
-        0.5f, -0.5f
-    };
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
+	glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == user currently bound buffer e.g. m_vbo_vertices
+	
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_colors);
 
-    GLfloat colors[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f
-    };
+	// retrieve color and animate it
+	float* color = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE);
+	const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	color[0] = fmod(now, 1000.0f) / 1000.0f;
 
-    glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, vertices);
-    glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, colors);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
+	// actual draw call
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	
+	// clean up
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
 
     m_program->release();
 
