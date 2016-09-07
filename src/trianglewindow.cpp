@@ -41,6 +41,24 @@ namespace
 		"   vec4 col = texture(tex, textureCoord);\n"
         "   gl_FragColor = vec4(col.rgb, 1.0);\n"
         "}\n";
+
+	static const char* postProcessVS =
+		"#version 450 compatibility\n"
+		"in vec2 posAttr;\n"
+		"out vec2 textureCoord;\n"
+		"void main() {\n"
+		"   textureCoord = posAttr * 0.5 + vec2(0.5);\n"
+		"   gl_Position = vec4(posAttr, 0.0, 1.0);\n"
+		"}\n";
+
+	static const char* postProcessFS =
+		"#version 450 compatibility\n"
+		"in vec2 textureCoord;\n"
+		"uniform sampler2D tex;\n"
+		"void main() {\n"
+		"   vec4 col = texture(tex, textureCoord);\n"
+		"   gl_FragColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0);\n"
+		"}\n";
 }
 
 
@@ -71,12 +89,49 @@ void TriangleWindow::initializeGL()
     m_matrixUniform = m_program->uniformLocation("matrix");
 	m_texture_uniform = m_program->uniformLocation("tex");
 
+	m_post_process_program = new QOpenGLShaderProgram(this);
+	m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Vertex, postProcessVS);
+	m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Fragment, postProcessFS);
+	m_post_process_program->link();
+	m_post_process_pos_attr = m_post_process_program->attributeLocation("posAttr");
+	m_post_process_tex_uniform = m_post_process_program->uniformLocation("tex");
+
+	// framebuffer color
+	glGenTextures(1, &m_fb_col_id);
+	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1920, 1080, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// framebuffer depth
+	glGenTextures(1, &m_fb_depth_id);
+	glBindTexture(GL_TEXTURE_2D, m_fb_depth_id);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glGenFramebuffers(1, &m_fb_id);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fb_id);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_fb_col_id, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_fb_depth_id, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// vbo for a quad
+	GLfloat quad[] = {
+		-1.0f, -1.0f,
+		1.0f, -1.0f,
+		1.0f, 1.0f,
+		-1.0f, 1.0f
+	};
+	glGenBuffers(1, &m_vbo_quad);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// vbo for triangle
 	GLfloat vertices[] = {
 		0.0f, 0.707f,
 		-0.5f, -0.5f,
 		0.5f, -0.5f
 	};
-
 	glGenBuffers(1, &m_vbo_vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -107,10 +162,6 @@ void TriangleWindow::initializeGL()
 	glGenTextures(1, &m_texture_id);
 	glBindTexture(GL_TEXTURE_2D, m_texture_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2, 2, 0, GL_RGBA, GL_FLOAT, texture_data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -118,8 +169,6 @@ void TriangleWindow::paintGL()
 {
     const qreal retinaScale = devicePixelRatio();
     glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
-
-    glClear(GL_COLOR_BUFFER_BIT);
 
     m_program->bind();
 
@@ -139,20 +188,46 @@ void TriangleWindow::paintGL()
 	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_texture_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	// actual draw call
+	// re-direct rendering to frame buffer
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fb_id);
+	glClear(GL_COLOR_BUFFER_BIT); // so we can work on a clean empty framebuffer
+
+	// actual draw call of the shape (triangle)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
 	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	m_program->release();
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+
+	// switch back to back buffer
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	m_post_process_program->bind();
+	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
+	glVertexAttribPointer(m_post_process_pos_attr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == user currently bound buffer e.g. m_vbo_quad
+	glDrawArrays(GL_QUADS, 0, 4);
+
+	m_post_process_program->release();
 
 	// clean up
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glActiveTexture(GL_TEXTURE0); // make sure we unbind the correct texture slot
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
-
-    m_program->release();
 
     ++m_frame;
 }

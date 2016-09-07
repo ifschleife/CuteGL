@@ -34,7 +34,17 @@ private:
 	GLuint m_texture_id;
 	GLuint m_texture_uniform;
 
+	GLuint m_fb_id;
+	GLuint m_fb_col_id;
+	GLuint m_fb_depth_id;
 
     QOpenGLShaderProgram* m_program;
+	GLuint m_post_process_pos_attr;
+	GLuint m_post_process_tex_uniform;
+
+	GLuint m_vbo_quad;
+
+	QOpenGLShaderProgram* m_post_process_program;
+
     int m_frame;
 };
