@@ -24,13 +24,16 @@ private:
     GLuint loadShader(GLenum type, const char* source);
 
     GLuint m_posAttr;
-    GLuint m_colAttr;
+	GLuint m_textureCoordAttr;
     GLuint m_matrixUniform;
 	
 	GLuint m_index_buffer;
 	GLuint m_vbo_vertices;
-	GLuint m_vbo_colors;
 	GLuint m_vbo_indices;
+	GLuint m_vbo_texture_coords;
+	GLuint m_texture_id;
+	GLuint m_texture_uniform;
+
 
     QOpenGLShaderProgram* m_program;
     int m_frame;
