@@ -27,8 +27,10 @@ private:
     GLuint m_colAttr;
     GLuint m_matrixUniform;
 	
+	GLuint m_index_buffer;
 	GLuint m_vbo_vertices;
 	GLuint m_vbo_colors;
+	GLuint m_vbo_indices;
 
     QOpenGLShaderProgram* m_program;
     int m_frame;

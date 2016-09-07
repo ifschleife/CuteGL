@@ -90,6 +90,11 @@ void TriangleWindow::initializeGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	GLuint indices[] = { 0, 1, 2 };
+	glGenBuffers(1, &m_vbo_indices);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void TriangleWindow::paintGL()
@@ -106,7 +111,7 @@ void TriangleWindow::paintGL()
 
     m_program->setUniformValue(m_matrixUniform, matrix);
 
-	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
 	glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == user currently bound buffer e.g. m_vbo_vertices
 	
@@ -122,8 +127,10 @@ void TriangleWindow::paintGL()
 	glVertexAttribPointer(m_colAttr, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	// actual draw call
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
+	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	// clean up
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisableVertexAttribArray(1);
