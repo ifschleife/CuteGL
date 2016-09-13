@@ -4,6 +4,7 @@
 #include <QOpenGLFunctions_4_5_Compatibility>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLWindow>
+#include <QTimer>
 
 
 class QOpenGLShaderProgram;
@@ -11,14 +12,20 @@ class QOpenGLShaderProgram;
 
 class TriangleWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
 {
+	Q_OBJECT
+
 public:
     TriangleWindow();
 
     void initializeGL() override;
     void paintGL() override;
 
+signals:
+	void frameTime(float time_in_ms);
+
 public slots:
     void setAnimating(bool animating);
+	void updateFrameTime();
 
 private:
     GLuint loadShader(GLenum type, const char* source);
@@ -46,6 +53,9 @@ private:
 	GLuint m_vbo_quad;
 
 	QOpenGLShaderProgram* m_post_process_program;
+
+	QTimer m_frame_timer;
+	uint_fast8_t m_frame_counter{0};
 
     int m_frame;
 };

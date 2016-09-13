@@ -17,6 +17,9 @@ public:
     ~MainWindow() override;
 
 private:
+	void showFrameTime(float time_in_ms);
+
+private:
     std::unique_ptr<TriangleWindow> m_glWindow;
     std::unique_ptr<Ui::MainWindow> m_ui;
 };

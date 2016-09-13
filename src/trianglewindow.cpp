@@ -66,6 +66,9 @@ TriangleWindow::TriangleWindow()
     : m_program(nullptr)
     , m_frame(0)
 {
+	m_frame_timer.setInterval(1000);
+
+	connect(&m_frame_timer, &QTimer::timeout, this, &TriangleWindow::updateFrameTime);
 }
 
 GLuint TriangleWindow::loadShader(GLenum type, const char* source)
@@ -186,6 +189,8 @@ void TriangleWindow::initializeGL()
 	glBindTexture(GL_TEXTURE_2D, m_texture_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2, 2, 0, GL_RGBA, GL_FLOAT, texture_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	m_frame_timer.start();
 }
 
 
@@ -274,6 +279,8 @@ void TriangleWindow::paintGL()
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
     ++m_frame;
+
+	++m_frame_counter;
 }
 
 void TriangleWindow::setAnimating(bool animating)
@@ -292,4 +299,10 @@ void TriangleWindow::setAnimating(bool animating)
     {
         disconnect(this, &TriangleWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&TriangleWindow::update));
     }
+}
+
+void TriangleWindow::updateFrameTime()
+{
+	emit frameTime(m_frame_counter / 3.60f);
+	m_frame_counter = 0;
 }
