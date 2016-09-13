@@ -4,6 +4,7 @@
 #include <QOpenGLShaderProgram>
 #include <QScreen>
 
+#include <chrono>
 #include <qmath.h>
 
 
@@ -222,6 +223,22 @@ void TriangleWindow::paintGL()
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fb_id);
 	glClear(GL_COLOR_BUFFER_BIT); // so we can work on a clean empty framebuffer
 
+	static auto start = std::chrono::high_resolution_clock::now();
+	const auto now = std::chrono::high_resolution_clock::now();
+	const float time = std::chrono::duration_cast<std::chrono::duration<float>>(now - start).count();
+
+	GLfloat texture_data[] =
+	{
+		1.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f
+	};
+	texture_data[0] = (sin(time*4.0f) + 1.0f) / 2.0f;
+	texture_data[5] = (sin(time*4.0f) + 1.0f) / 2.0f;
+	texture_data[10] = (sin(time*4.0f) + 1.0f) / 2.0f;
+	glTextureSubImage2D(m_texture_id, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
+
 	// actual draw call of the shape (triangle)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
 	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
@@ -256,8 +273,6 @@ void TriangleWindow::paintGL()
 	glActiveTexture(GL_TEXTURE0); // make sure we unbind the correct texture slot
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
-	
-
     ++m_frame;
 }
 
