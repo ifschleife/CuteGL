@@ -40,6 +40,7 @@ private:
 
     QOpenGLShaderProgram* m_program;
 	GLuint m_post_process_pos_attr;
+	GLuint m_post_process_res_uniform;
 	GLuint m_post_process_tex_uniform;
 
 	GLuint m_vbo_quad;

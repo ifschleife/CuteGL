@@ -4,8 +4,6 @@
 #include <QOpenGLShaderProgram>
 #include <QScreen>
 
-
-#include <chrono>
 #include <qmath.h>
 
 
@@ -22,7 +20,7 @@ namespace
         }
     };
 
-    static const char *vertexShaderSource =
+    static const char* vertexShaderSource =
         "#version 450 compatibility\n"
         "in vec2 posAttr;\n"
         "in vec2 textureCoordAttr;\n"
@@ -33,7 +31,7 @@ namespace
         "   gl_Position = matrix * vec4(posAttr, 0.0, 1.0);\n"
         "}\n";
 
-	static const char *fragmentShaderSource =
+	static const char* fragmentShaderSource =
 		"#version 450 compatibility\n"
 		"in vec2 textureCoord;\n"
 		"uniform sampler2D tex;\n"
@@ -45,9 +43,10 @@ namespace
 	static const char* postProcessVS =
 		"#version 450 compatibility\n"
 		"in vec2 posAttr;\n"
+		"uniform vec2 res;\n"
 		"out vec2 textureCoord;\n"
 		"void main() {\n"
-		"   textureCoord = posAttr * 0.5 + vec2(0.5);\n"
+		"   textureCoord = (posAttr * 0.5 + vec2(0.5)) * res / vec2(1920.0, 1080.0);\n"
 		"   gl_Position = vec4(posAttr, 0.0, 1.0);\n"
 		"}\n";
 
@@ -57,7 +56,7 @@ namespace
 		"uniform sampler2D tex;\n"
 		"void main() {\n"
 		"   vec4 col = texture(tex, textureCoord);\n"
-		"   gl_FragColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0);\n"
+		"   gl_FragColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0); \n"
 		"}\n";
 }
 
@@ -80,34 +79,53 @@ void TriangleWindow::initializeGL()
 {
     initializeOpenGLFunctions();
 
+	// shaders for shape
     m_program = new QOpenGLShaderProgram(this);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
-    m_program->link();
+	bool shaders_ok = true;
+	shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
+    shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+    shaders_ok |= m_program->link();
+	if (!shaders_ok)
+	{
+		qDebug() << m_program->log();
+	}
+
     m_posAttr = m_program->attributeLocation("posAttr");
 	m_textureCoordAttr = m_program->attributeLocation("textureCoordAttr");
     m_matrixUniform = m_program->uniformLocation("matrix");
 	m_texture_uniform = m_program->uniformLocation("tex");
 
+	// shaders for framebuffer quad
 	m_post_process_program = new QOpenGLShaderProgram(this);
-	m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Vertex, postProcessVS);
-	m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Fragment, postProcessFS);
-	m_post_process_program->link();
+	shaders_ok = true;
+	shaders_ok |= m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Vertex, postProcessVS);
+	shaders_ok |= m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Fragment, postProcessFS);
+	shaders_ok |= m_post_process_program->link();
+	if (!shaders_ok)
+	{
+		qDebug() << m_program->log();
+	}
+	//char buffer[512];
+	//glGetShaderInfoLog(m_program->shaders()[0]->shaderId(), 512, nullptr, buffer);
+	//qDebug() << buffer;
+
 	m_post_process_pos_attr = m_post_process_program->attributeLocation("posAttr");
+	m_post_process_res_uniform = m_post_process_program->uniformLocation("res");
 	m_post_process_tex_uniform = m_post_process_program->uniformLocation("tex");
 
-	// framebuffer color
+	// create framebuffer color
 	glGenTextures(1, &m_fb_col_id);
 	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1920, 1080, 0, GL_RGBA, GL_FLOAT, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	// framebuffer depth
+	// create framebuffer depth
 	glGenTextures(1, &m_fb_depth_id);
 	glBindTexture(GL_TEXTURE_2D, m_fb_depth_id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	// upload framebuffer
 	glGenFramebuffers(1, &m_fb_id);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_fb_id);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_fb_col_id, 0);
@@ -115,11 +133,12 @@ void TriangleWindow::initializeGL()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// vbo for a quad
-	GLfloat quad[] = {
+	GLfloat quad[] =
+	{
 		-1.0f, -1.0f,
-		1.0f, -1.0f,
-		1.0f, 1.0f,
-		-1.0f, 1.0f
+		 1.0f, -1.0f,
+		 1.0f,  1.0f,
+		-1.0f,  1.0f
 	};
 	glGenBuffers(1, &m_vbo_quad);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
@@ -127,10 +146,11 @@ void TriangleWindow::initializeGL()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	// vbo for triangle
-	GLfloat vertices[] = {
-		0.0f, 0.707f,
+	GLfloat vertices[] =
+	{
+		 0.0f,  0.707f,
 		-0.5f, -0.5f,
-		0.5f, -0.5f
+		 0.5f, -0.5f
 	};
 	glGenBuffers(1, &m_vbo_vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
@@ -143,7 +163,8 @@ void TriangleWindow::initializeGL()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	GLfloat texture_coords[] = {
+	GLfloat texture_coords[] =
+	{
 		0.0f, 0.0f,
 		0.0f, 1.0f,
 		1.0f, 1.0f
@@ -153,7 +174,8 @@ void TriangleWindow::initializeGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	GLfloat texture_data[] = {
+	GLfloat texture_data[] =
+	{
 		1.0f, 0.0f, 0.0f, 1.0f,
 		0.0f, 1.0f, 0.0f, 1.0f,
 		0.0f, 0.0f, 1.0f, 1.0f,
@@ -165,6 +187,7 @@ void TriangleWindow::initializeGL()
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+
 void TriangleWindow::paintGL()
 {
     const qreal retinaScale = devicePixelRatio();
@@ -172,7 +195,9 @@ void TriangleWindow::paintGL()
 
     m_program->bind();
 
-    QMatrix4x4 matrix; matrix.perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f); matrix.translate(0, 0, -2);
+    QMatrix4x4 matrix;
+	matrix.perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f);
+	matrix.translate(0, 0, -2);
     matrix.rotate(100.0f * m_frame / static_cast<float>(screen()->refreshRate()), 0, 1, 0);
 
     m_program->setUniformValue(m_matrixUniform, matrix);
@@ -180,7 +205,7 @@ void TriangleWindow::paintGL()
 
 	glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
-	glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == user currently bound buffer e.g. m_vbo_vertices
+	glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_vertices
 	
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture_coords);
@@ -210,6 +235,8 @@ void TriangleWindow::paintGL()
 
 	m_post_process_program->bind();
 	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
+	QRect winSize = geometry();
+	m_post_process_program->setUniformValue(m_post_process_res_uniform, (float)winSize.width(), (float)winSize.height());
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -219,7 +246,7 @@ void TriangleWindow::paintGL()
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
-	glVertexAttribPointer(m_post_process_pos_attr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == user currently bound buffer e.g. m_vbo_quad
+	glVertexAttribPointer(m_post_process_pos_attr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_quad
 	glDrawArrays(GL_QUADS, 0, 4);
 
 	m_post_process_program->release();
@@ -228,6 +255,8 @@ void TriangleWindow::paintGL()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glActiveTexture(GL_TEXTURE0); // make sure we unbind the correct texture slot
 	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	
 
     ++m_frame;
 }
