@@ -23,13 +23,13 @@ namespace
         }
     };
 
-    static const char* vertexShaderSource =
-        "#version 450 compatibility\n"
-        "in vec2 posAttr;\n"
-        "in vec2 textureCoordAttr;\n"
-        "out vec2 textureCoord;\n"
-        "uniform mat4 matrix;\n"
-        "void main() {\n"
+	static const char* vertexShaderSource =
+		"#version 450 compatibility\n"
+		"in vec2 posAttr;\n"
+		"in vec2 textureCoordAttr;\n"
+		"out vec2 textureCoord;\n"
+		"uniform mat4 matrix;\n"
+		"void main() {\n"
         "   textureCoord = textureCoordAttr;\n"
         "   gl_Position = matrix * vec4(posAttr, 0.0, 1.0);\n"
         "}\n";
@@ -201,17 +201,30 @@ void OpenGLWindow::paintGL()
 	const auto now = std::chrono::high_resolution_clock::now();
 	const float time = std::chrono::duration_cast<std::chrono::duration<float>>(now - start).count();
 
-    const qreal retinaScale = devicePixelRatio();
-    glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
+	const qreal retinaScale = devicePixelRatio();
+	glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
 
-	QMatrix4x4 matrix;
-	matrix.perspective(60.0f, 4.0f / 3.0f, 0.1f, 100.0f);
-	matrix.translate(0.0f, 0.0f, -2.0f);
 	if (m_animating)
 	{
 		m_angle = fmod(ANIMATION_SPEED * time, 360.0f);
 	}
-	matrix.rotate(m_angle, {0.0f, 1.0f, 0.0f});
+
+	QMatrix4x4 model;
+	model.rotate(m_angle, {0.0f, 1.0f, 0.0f});
+	
+	QMatrix4x4 view;
+	view.lookAt
+	(
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 0.0f},
+		{0.0f, 0.0f, 1.0f}
+	);
+
+	QMatrix4x4 proj;
+	proj.perspective(60.0f, 16.0f / 9.0f, 0.1f, 100.0f);
+	proj.translate(0.0f, 0.0f, -2.0f);
+
+	const QMatrix4x4 matrix = proj * view * model;
 
 	m_program->bind();
 
