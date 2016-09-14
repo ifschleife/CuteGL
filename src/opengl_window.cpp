@@ -10,6 +10,8 @@
 
 namespace
 {
+	const float ANIMATION_SPEED = 100.0f;
+
     // template for overloaded function selection, courtesy of
     // http://stackoverflow.com/a/16795664/578536
     template<typename... Args> struct SELECT
@@ -207,9 +209,7 @@ void OpenGLWindow::paintGL()
 	matrix.translate(0.0f, 0.0f, -2.0f);
 	if (m_animating)
 	{
-		const auto anim_now = std::chrono::high_resolution_clock::now();
-		const float anim_diff = std::chrono::duration_cast<std::chrono::duration<float>>(anim_now - start).count();
-		m_angle = fmod(100.0f * anim_diff, 360.0f);
+		m_angle = fmod(ANIMATION_SPEED * time, 360.0f);
 	}
 	matrix.rotate(m_angle, {0.0f, 1.0f, 0.0f});
 
