@@ -6,6 +6,8 @@
 #include <QOpenGLWindow>
 #include <QTimer>
 
+#include <chrono>
+
 
 class QOpenGLShaderProgram;
 
@@ -57,5 +59,6 @@ private:
 	QTimer m_frame_timer;
 	uint_fast8_t m_frame_counter{0};
 
-    int m_frame;
+	bool m_animating{false};
+	float m_angle{0.0f};
 };

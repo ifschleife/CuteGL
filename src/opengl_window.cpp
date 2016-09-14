@@ -64,7 +64,6 @@ namespace
 
 OpenGLWindow::OpenGLWindow()
     : m_program(nullptr)
-    , m_frame(0)
 {
 	m_frame_timer.setInterval(1000);
 
@@ -196,17 +195,27 @@ void OpenGLWindow::initializeGL()
 
 void OpenGLWindow::paintGL()
 {
+	static auto start = std::chrono::high_resolution_clock::now();
+	const auto now = std::chrono::high_resolution_clock::now();
+	const float time = std::chrono::duration_cast<std::chrono::duration<float>>(now - start).count();
+
     const qreal retinaScale = devicePixelRatio();
     glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
 
-    m_program->bind();
+	QMatrix4x4 matrix;
+	matrix.perspective(60.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+	matrix.translate(0.0f, 0.0f, -2.0f);
+	if (m_animating)
+	{
+		const auto anim_now = std::chrono::high_resolution_clock::now();
+		const float anim_diff = std::chrono::duration_cast<std::chrono::duration<float>>(anim_now - start).count();
+		m_angle = fmod(100.0f * anim_diff, 360.0f);
+	}
+	matrix.rotate(m_angle, {0.0f, 1.0f, 0.0f});
 
-    QMatrix4x4 matrix;
-	matrix.perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f);
-	matrix.translate(0, 0, -2);
-    matrix.rotate(100.0f * m_frame / static_cast<float>(screen()->refreshRate()), 0, 1, 0);
+	m_program->bind();
 
-    m_program->setUniformValue(m_matrixUniform, matrix);
+	m_program->setUniformValue(m_matrixUniform, matrix);
 	m_program->setUniformValue(m_texture_uniform, 0); // 0 == texture slot number from glActiveTexture
 
 	glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
@@ -227,10 +236,6 @@ void OpenGLWindow::paintGL()
 	// re-direct rendering to frame buffer
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fb_id);
 	glClear(GL_COLOR_BUFFER_BIT); // so we can work on a clean empty framebuffer
-
-	static auto start = std::chrono::high_resolution_clock::now();
-	const auto now = std::chrono::high_resolution_clock::now();
-	const float time = std::chrono::duration_cast<std::chrono::duration<float>>(now - start).count();
 
 	GLfloat texture_data[] =
 	{
@@ -278,13 +283,12 @@ void OpenGLWindow::paintGL()
 	glActiveTexture(GL_TEXTURE0); // make sure we unbind the correct texture slot
 	glBindTexture(GL_TEXTURE_2D, 0);
 	
-    ++m_frame;
-
 	++m_frame_counter;
 }
 
 void OpenGLWindow::setAnimating(bool animating)
 {
+	m_animating = animating;
     if (animating)
     {
         // Animate continuously, throttled by the blocking swapBuffers() call the
@@ -293,7 +297,8 @@ void OpenGLWindow::setAnimating(bool animating)
         // obviously assumes that the swap interval (see
         // QSurfaceFormat::setSwapInterval()) is non-zero.
         connect(this, &OpenGLWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&OpenGLWindow::update));
-        update();
+        
+		update();
     }
     else
     {
