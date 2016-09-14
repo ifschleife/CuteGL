@@ -1,12 +1,12 @@
 set(SOURCES
     main.cpp
     mainwindow.cpp
-    trianglewindow.cpp
+    opengl_window.cpp
     )
 
 set(HEADERS
     mainwindow.h
-    trianglewindow.h
+    opengl_window.h
     )
 
 set(UI_FILES

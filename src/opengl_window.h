@@ -10,12 +10,12 @@
 class QOpenGLShaderProgram;
 
 
-class TriangleWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
+class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
 {
 	Q_OBJECT
 
 public:
-    TriangleWindow();
+    OpenGLWindow();
 
     void initializeGL() override;
     void paintGL() override;

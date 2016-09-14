@@ -1,4 +1,4 @@
-#include "trianglewindow.h"
+#include "opengl_window.h"
 
 #include <QMatrix4x4>
 #include <QOpenGLShaderProgram>
@@ -62,16 +62,16 @@ namespace
 }
 
 
-TriangleWindow::TriangleWindow()
+OpenGLWindow::OpenGLWindow()
     : m_program(nullptr)
     , m_frame(0)
 {
 	m_frame_timer.setInterval(1000);
 
-	connect(&m_frame_timer, &QTimer::timeout, this, &TriangleWindow::updateFrameTime);
+	connect(&m_frame_timer, &QTimer::timeout, this, &OpenGLWindow::updateFrameTime);
 }
 
-GLuint TriangleWindow::loadShader(GLenum type, const char* source)
+GLuint OpenGLWindow::loadShader(GLenum type, const char* source)
 {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, 0);
@@ -79,7 +79,7 @@ GLuint TriangleWindow::loadShader(GLenum type, const char* source)
     return shader;
 }
 
-void TriangleWindow::initializeGL()
+void OpenGLWindow::initializeGL()
 {
     initializeOpenGLFunctions();
 
@@ -194,7 +194,7 @@ void TriangleWindow::initializeGL()
 }
 
 
-void TriangleWindow::paintGL()
+void OpenGLWindow::paintGL()
 {
     const qreal retinaScale = devicePixelRatio();
     glViewport(0, 0, static_cast<GLsizei>(width() * retinaScale), static_cast<GLsizei>(height() * retinaScale));
@@ -283,7 +283,7 @@ void TriangleWindow::paintGL()
 	++m_frame_counter;
 }
 
-void TriangleWindow::setAnimating(bool animating)
+void OpenGLWindow::setAnimating(bool animating)
 {
     if (animating)
     {
@@ -292,16 +292,16 @@ void TriangleWindow::setAnimating(bool animating)
         // (frameSwapped signal is emitted), we schedule a new update. This
         // obviously assumes that the swap interval (see
         // QSurfaceFormat::setSwapInterval()) is non-zero.
-        connect(this, &TriangleWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&TriangleWindow::update));
+        connect(this, &OpenGLWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&OpenGLWindow::update));
         update();
     }
     else
     {
-        disconnect(this, &TriangleWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&TriangleWindow::update));
+        disconnect(this, &OpenGLWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&OpenGLWindow::update));
     }
 }
 
-void TriangleWindow::updateFrameTime()
+void OpenGLWindow::updateFrameTime()
 {
 	emit frameTime(m_frame_counter / 3.60f);
 	m_frame_counter = 0;

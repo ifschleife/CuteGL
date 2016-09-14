@@ -1,12 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "trianglewindow.h"
+#include "opengl_window.h"
 
 
 MainWindow::MainWindow(QWidget* parent /*=0*/)
     : QMainWindow{parent}
-    , m_glWindow(std::make_unique<TriangleWindow>())
+	, m_glWindow{std::make_unique<OpenGLWindow>()}
     , m_ui{std::make_unique<Ui::MainWindow>()}
 {
     m_ui->setupUi(this);
@@ -22,8 +22,8 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
     QWidget* glContainer = QWidget::createWindowContainer(m_glWindow.get(), this);
     m_ui->mainLayout->replaceWidget(m_ui->glWidgetContainer, glContainer, Qt::FindDirectChildrenOnly);
 
-    connect(m_ui->buttonSpin, &QPushButton::clicked,      m_glWindow.get(), &TriangleWindow::setAnimating);
-	connect(m_glWindow.get(), &TriangleWindow::frameTime, this,             &MainWindow::showFrameTime);
+    connect(m_ui->buttonSpin, &QPushButton::clicked,      m_glWindow.get(), &OpenGLWindow::setAnimating);
+	connect(m_glWindow.get(), &OpenGLWindow::frameTime, this,             &MainWindow::showFrameTime);
 }
 
 MainWindow::~MainWindow()
