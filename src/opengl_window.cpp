@@ -155,14 +155,15 @@ void OpenGLWindow::initializeGL()
 	{
 		 0.0f,  0.707f,
 		-0.5f, -0.5f,
-		 0.5f, -0.5f
+		 0.5f, -0.5f,
+		 0.5f,  0.707f
 	};
 	glGenBuffers(1, &m_vbo_vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	GLuint indices[] = { 0, 1, 2 };
+	GLuint indices[] = { 0, 1, 2, 0, 2, 3 };
 	glGenBuffers(1, &m_vbo_indices);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
@@ -172,7 +173,8 @@ void OpenGLWindow::initializeGL()
 	{
 		0.0f, 0.0f,
 		0.0f, 1.0f,
-		1.0f, 1.0f
+		1.0f, 1.0f,
+		0.5f, 0.5f
 	};
 	glGenBuffers(1, &m_vbo_texture_coords);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture_coords);
@@ -264,7 +266,7 @@ void OpenGLWindow::paintGL()
 
 	// actual draw call of the shape (triangle)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	m_program->release();
 	glDisableVertexAttribArray(1);
