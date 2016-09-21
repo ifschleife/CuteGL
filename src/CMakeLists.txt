@@ -7,6 +7,7 @@ set(SOURCES
 set(HEADERS
     mainwindow.h
     opengl_window.h
+    shape.h
     )
 
 set(UI_FILES

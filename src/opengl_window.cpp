@@ -150,23 +150,24 @@ void OpenGLWindow::initializeGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+
+	m_shape.positions.push_back({ 0.0f,  0.7f, 1.0f});
+	m_shape.positions.push_back({-0.5f, -0.5f, 1.0f});
+	m_shape.positions.push_back({ 0.5f, -0.5f, 1.0f});
+	m_shape.positions.push_back({ 0.5f,  0.7f, 1.0f});
+
+	m_shape.indices.push_back({0, 1, 2});
+	m_shape.indices.push_back({0, 2, 3});
+
 	// vbo for triangle
-	GLfloat vertices[] =
-	{
-		 0.0f,  0.707f,
-		-0.5f, -0.5f,
-		 0.5f, -0.5f,
-		 0.5f,  0.707f
-	};
-	glGenBuffers(1, &m_vbo_vertices);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glGenBuffers(1, &m_shape.vbos.pos);
+	glBindBuffer(GL_ARRAY_BUFFER, m_shape.vbos.pos);
+	glBufferData(GL_ARRAY_BUFFER, m_shape.positions.size() * sizeof(m_shape.positions[0]), &m_shape.positions[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	GLuint indices[] = { 0, 1, 2, 0, 2, 3 };
-	glGenBuffers(1, &m_vbo_indices);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glGenBuffers(1, &m_shape.vbos.index);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_shape.indices.size() * sizeof(m_shape.indices[0]), &m_shape.indices[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	GLfloat texture_coords[] =
@@ -234,8 +235,8 @@ void OpenGLWindow::paintGL()
 	m_program->setUniformValue(m_texture_uniform, 0); // 0 == texture slot number from glActiveTexture
 
 	glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertices);
-	glVertexAttribPointer(m_posAttr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_vertices
+	glBindBuffer(GL_ARRAY_BUFFER, m_shape.vbos.pos);
+	glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_vertices
 	
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture_coords);
@@ -265,8 +266,8 @@ void OpenGLWindow::paintGL()
 	glTextureSubImage2D(m_texture_id, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
 
 	// actual draw call of the shape (triangle)
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vbo_indices);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
+	glDrawElements(GL_TRIANGLES, 6/*3 * (GLsizei)m_shape.indices.size()*/, GL_UNSIGNED_INT, nullptr);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	m_program->release();
 	glDisableVertexAttribArray(1);
