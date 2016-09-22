@@ -8,6 +8,7 @@ set(HEADERS
     mainwindow.h
     opengl_window.h
     shape.h
+    util.h
     )
 
 set(UI_FILES

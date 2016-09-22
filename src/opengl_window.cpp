@@ -1,50 +1,44 @@
 #include "opengl_window.h"
 
-#include <QMatrix4x4>
+#include <QtMath>
+#include <QOpenGLDebugLogger>
 #include <QOpenGLShaderProgram>
 #include <QScreen>
+#include <QTimer>
 
 #include <chrono>
-#include <qmath.h>
+#include <stdexcept>
+
+#include "util.h"
 
 
 namespace
 {
 	const float ANIMATION_SPEED = 100.0f;
 
-    // template for overloaded function selection, courtesy of
-    // http://stackoverflow.com/a/16795664/578536
-    template<typename... Args> struct SELECT
-    {
-        template<typename C, typename R>
-        static constexpr auto OVERLOAD_OF(R(C::*pmf)(Args...)) -> decltype(pmf)
-        {
-            return pmf;
-        }
-    };
-
 	static const char* vertexShaderSource =
-		"#version 450 compatibility\n"
+		"#version 450 core\n"
 		"in vec2 posAttr;\n"
 		"in vec2 textureCoordAttr;\n"
 		"out vec2 textureCoord;\n"
 		"uniform mat4 matrix;\n"
 		"void main() {\n"
-        "   textureCoord = textureCoordAttr;\n"
-        "   gl_Position = matrix * vec4(posAttr, 0.0, 1.0);\n"
-        "}\n";
+		"   textureCoord = textureCoordAttr;\n"
+		"   gl_Position = matrix * vec4(posAttr, 0.0, 1.0);\n"
+		"}\n";
 
 	static const char* fragmentShaderSource =
-		"#version 450 compatibility\n"
+		"#version 450 core\n"
+		"layout(location = 0) out vec4 outColor;\n"
 		"in vec2 textureCoord;\n"
 		"uniform sampler2D tex;\n"
 		"void main() {\n"
 		"   vec4 col = texture(tex, textureCoord);\n"
-        "   gl_FragColor = vec4(col.rgb, 1.0);\n"
-        "}\n";
+		"   outColor = vec4(col.rgb, 1.0);\n"
+		"}\n";
 
 	static const char* postProcessVS =
-		"#version 450 compatibility\n"
+		"#version 450 core\n"
 		"in vec2 posAttr;\n"
 		"uniform vec2 res;\n"
 		"out vec2 textureCoord;\n"
@@ -54,54 +48,73 @@ namespace
 		"}\n";
 
 	static const char* postProcessFS =
-		"#version 450 compatibility\n"
+		"#version 450 core\n"
+		"layout(location = 0) out vec4 outColor;\n"
 		"in vec2 textureCoord;\n"
 		"uniform sampler2D tex;\n"
 		"void main() {\n"
 		"   vec4 col = texture(tex, textureCoord);\n"
-		"   gl_FragColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0); \n"
+		"   outColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0); \n"
 		"}\n";
 }
 
 
 OpenGLWindow::OpenGLWindow()
-    : m_program(nullptr)
+	: m_frame_timer(std::make_unique<QTimer>())
+	, m_logger(std::make_unique<QOpenGLDebugLogger>())
+	, m_post_process_program(std::make_unique<QOpenGLShaderProgram>())
+	, m_program(std::make_unique<QOpenGLShaderProgram>())
 {
-	m_frame_timer.setInterval(1000);
+	m_frame_timer->setInterval(1000);
 
-	connect(&m_frame_timer, &QTimer::timeout, this, &OpenGLWindow::updateFrameTime);
+	DEBUG_CALL(connect(m_logger.get(), &QOpenGLDebugLogger::messageLogged, this, &OpenGLWindow::handle_log_message));
+	connect(m_frame_timer.get(), &QTimer::timeout, this, &OpenGLWindow::updateFrameTime);
+}
+
+void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
+{
+	qDebug() << msg;
+	if (msg.severity() == QOpenGLDebugMessage::HighSeverity)
+	{
+		throw std::runtime_error(msg.message().toStdString());
+	}
 }
 
 GLuint OpenGLWindow::loadShader(GLenum type, const char* source)
 {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, 0);
-    glCompileShader(shader);
-    return shader;
+	GLuint shader = glCreateShader(type);
+	glShaderSource(shader, 1, &source, 0);
+	glCompileShader(shader);
+	return shader;
 }
 
 void OpenGLWindow::initializeGL()
 {
-    initializeOpenGLFunctions();
+	initializeOpenGLFunctions();
+
+	DEBUG_CALL(m_logger->initialize());
+	DEBUG_CALL(m_logger->startLogging(QOpenGLDebugLogger::SynchronousLogging));
+
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
 	// shaders for shape
-    m_program = new QOpenGLShaderProgram(this);
 	bool shaders_ok = true;
 	shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
-    shaders_ok |= m_program->link();
+	shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+	shaders_ok |= m_program->link();
 	if (!shaders_ok)
 	{
 		qDebug() << m_program->log();
 	}
 
-    m_posAttr = m_program->attributeLocation("posAttr");
+	m_posAttr = m_program->attributeLocation("posAttr");
 	m_textureCoordAttr = m_program->attributeLocation("textureCoordAttr");
-    m_matrixUniform = m_program->uniformLocation("matrix");
+	m_matrixUniform = m_program->uniformLocation("matrix");
 	m_texture_uniform = m_program->uniformLocation("tex");
 
 	// shaders for framebuffer quad
-	m_post_process_program = new QOpenGLShaderProgram(this);
 	shaders_ok = true;
 	shaders_ok |= m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Vertex, postProcessVS);
 	shaders_ok |= m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Fragment, postProcessFS);
@@ -194,7 +207,7 @@ void OpenGLWindow::initializeGL()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2, 2, 0, GL_RGBA, GL_FLOAT, texture_data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	m_frame_timer.start();
+	m_frame_timer->start();
 }
 
 
@@ -290,7 +303,7 @@ void OpenGLWindow::paintGL()
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
 	glVertexAttribPointer(m_post_process_pos_attr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_quad
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 	m_post_process_program->release();
 

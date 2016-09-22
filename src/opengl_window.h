@@ -1,17 +1,18 @@
 #pragma once
 
-#include "shape.h"
-
-#include <QOpenGLFunctions>
-#include <QOpenGLFunctions_4_5_Compatibility>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLWindow>
-#include <QTimer>
 
 #include <chrono>
+#include <memory>
+
+#include "shape.h"
 
 
+class QOpenGLDebugLogger;
+class QOpenGLDebugMessage;
 class QOpenGLShaderProgram;
+class QTimer;
 
 
 class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
@@ -31,8 +32,17 @@ public slots:
 	void setAnimating(bool animating);
 	void updateFrameTime();
 
+private slots:
+	void handle_log_message(const QOpenGLDebugMessage& msg);
+
 private:
 	GLuint loadShader(GLenum type, const char* source);
+
+private:
+	std::unique_ptr<QOpenGLDebugLogger> m_logger;
+
+	std::unique_ptr<QOpenGLShaderProgram> m_post_process_program;
+	std::unique_ptr<QOpenGLShaderProgram> m_program;
 
 	GLuint m_posAttr;
 	GLuint m_textureCoordAttr;
@@ -47,16 +57,13 @@ private:
 	GLuint m_fb_col_id;
 	GLuint m_fb_depth_id;
 
-	QOpenGLShaderProgram* m_program;
 	GLuint m_post_process_pos_attr;
 	GLuint m_post_process_res_uniform;
 	GLuint m_post_process_tex_uniform;
 
 	GLuint m_vbo_quad;
 
-	QOpenGLShaderProgram* m_post_process_program;
-
-	QTimer m_frame_timer;
+	std::unique_ptr<QTimer> m_frame_timer;
 	uint_fast8_t m_frame_counter{0};
 
 	bool m_animating{false};
