@@ -58,7 +58,6 @@ private:
 	GLuint m_fb_depth_id;
 
 	GLuint m_post_process_pos_attr;
-	GLuint m_post_process_res_uniform;
 	GLuint m_post_process_tex_uniform;
 
 	GLuint m_vbo_quad;

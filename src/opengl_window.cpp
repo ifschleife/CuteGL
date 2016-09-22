@@ -41,19 +41,16 @@ namespace
 		"#version 450 core\n"
 		"in vec2 posAttr;\n"
 		"uniform vec2 res;\n"
-		"out vec2 textureCoord;\n"
 		"void main() {\n"
-		"   textureCoord = (posAttr * 0.5 + vec2(0.5)) * res / vec2(1920.0, 1080.0);\n"
 		"   gl_Position = vec4(posAttr, 0.0, 1.0);\n"
 		"}\n";
 
 	static const char* postProcessFS =
 		"#version 450 core\n"
 		"layout(location = 0) out vec4 outColor;\n"
-		"in vec2 textureCoord;\n"
 		"uniform sampler2D tex;\n"
 		"void main() {\n"
-		"   vec4 col = texture(tex, textureCoord);\n"
+		"   vec4 col = texelFetch(tex, ivec2(gl_FragCoord.xy), 0).rgba;\n"
 		"   outColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0); \n"
 		"}\n";
 }
@@ -128,7 +125,6 @@ void OpenGLWindow::initializeGL()
 	//qDebug() << buffer;
 
 	m_post_process_pos_attr = m_post_process_program->attributeLocation("posAttr");
-	m_post_process_res_uniform = m_post_process_program->uniformLocation("res");
 	m_post_process_tex_uniform = m_post_process_program->uniformLocation("tex");
 
 	// create framebuffer color
@@ -291,8 +287,7 @@ void OpenGLWindow::paintGL()
 
 	m_post_process_program->bind();
 	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
-	QRect winSize = geometry();
-	m_post_process_program->setUniformValue(m_post_process_res_uniform, (float)winSize.width(), (float)winSize.height());
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
