@@ -278,7 +278,7 @@ void OpenGLWindow::paintGL()
 
 	// actual draw call of the shape (triangle)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
-	glDrawElements(GL_TRIANGLES, 6/*3 * (GLsizei)m_shape.indices.size()*/, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_shape.indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	m_program->release();
 	glDisableVertexAttribArray(1);
