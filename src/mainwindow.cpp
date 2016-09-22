@@ -24,8 +24,10 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
 	QWidget* glContainer = QWidget::createWindowContainer(m_glWindow.get(), this);
 	m_ui->mainLayout->replaceWidget(m_ui->glWidgetContainer, glContainer, Qt::FindDirectChildrenOnly);
 
-	connect(m_ui->buttonSpin, &QPushButton::clicked,    m_glWindow.get(), &OpenGLWindow::setAnimating);
-	connect(m_glWindow.get(), &OpenGLWindow::frameTime, this,             &MainWindow::showFrameTime);
+	connect(m_ui->buttonSpin,      &QPushButton::clicked, m_glWindow.get(), &OpenGLWindow::setAnimating);
+	connect(m_ui->buttonWireFrame, &QPushButton::clicked, m_glWindow.get(), &OpenGLWindow::showWireFrame);
+
+	connect(m_glWindow.get(), &OpenGLWindow::frameTime, this, &MainWindow::showFrameTime);
 }
 
 MainWindow::~MainWindow()

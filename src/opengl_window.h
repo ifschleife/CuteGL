@@ -30,6 +30,7 @@ signals:
 
 public slots:
 	void setAnimating(bool animating);
+	void showWireFrame(bool status);
 	void updateFrameTime();
 
 private slots:
@@ -67,6 +68,8 @@ private:
 
 	bool m_animating{false};
 	float m_angle{0.0f};
+
+	bool m_show_wire_frame{false};
 
 	Shape m_shape;
 };

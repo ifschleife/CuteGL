@@ -20,13 +20,13 @@ namespace
 
 	static const char* vertexShaderSource =
 		"#version 450 core\n"
-		"in vec2 posAttr;\n"
+		"in vec3 posAttr;\n"
 		"in vec2 textureCoordAttr;\n"
 		"out vec2 textureCoord;\n"
 		"uniform mat4 matrix;\n"
 		"void main() {\n"
 		"   textureCoord = textureCoordAttr;\n"
-		"   gl_Position = matrix * vec4(posAttr, 0.0, 1.0);\n"
+		"   gl_Position = matrix * vec4(posAttr, 1.0);\n"
 		"}\n";
 
 	static const char* fragmentShaderSource =
@@ -161,14 +161,48 @@ void OpenGLWindow::initializeGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	const float t = (1.0f + sqrt(5.0f)) / 4.0f;
 
-	m_shape.positions.push_back({ 0.0f,  0.7f, 1.0f});
-	m_shape.positions.push_back({-0.5f, -0.5f, 1.0f});
-	m_shape.positions.push_back({ 0.5f, -0.5f, 1.0f});
-	m_shape.positions.push_back({ 0.5f,  0.7f, 1.0f});
+	m_shape.positions.push_back({-0.5f,  t, 0.0f});
+	m_shape.positions.push_back({ 0.5f,  t, 0.0f});
+	m_shape.positions.push_back({-0.5f, -t, 0.0f});
+	m_shape.positions.push_back({ 0.5f, -t, 0.0f});
 
-	m_shape.indices.push_back({0, 1, 2});
-	m_shape.indices.push_back({0, 2, 3});
+	m_shape.positions.push_back({0.0f, -0.5f,  t});
+	m_shape.positions.push_back({0.0f,  0.5f,  t});
+	m_shape.positions.push_back({0.0f, -0.5f, -t});
+	m_shape.positions.push_back({0.0f,  0.5f, -t});
+
+	m_shape.positions.push_back({ t, 0.0f, -0.5f});
+	m_shape.positions.push_back({ t, 0.0f,  0.5f});
+	m_shape.positions.push_back({-t, 0.0f, -0.5f});
+	m_shape.positions.push_back({-t, 0.0f,  0.5f});
+
+
+	m_shape.indices.push_back({ 0, 11,  5});
+	m_shape.indices.push_back({ 0,  5,  1});
+	m_shape.indices.push_back({ 0,  1,  7});
+	m_shape.indices.push_back({ 0,  7, 10});
+	m_shape.indices.push_back({ 0, 10, 11});
+
+	m_shape.indices.push_back({ 1,  5,  9});
+	m_shape.indices.push_back({ 5, 11,  4});
+	m_shape.indices.push_back({11, 10,  2});
+	m_shape.indices.push_back({10,  7,  6});
+	m_shape.indices.push_back({ 7,  1,  8});
+
+	m_shape.indices.push_back({ 3,  9,  4});
+	m_shape.indices.push_back({ 3,  4,  2});
+	m_shape.indices.push_back({ 3,  2,  6});
+	m_shape.indices.push_back({ 3,  6,  8});
+	m_shape.indices.push_back({ 3,  8,  9});
+
+	m_shape.indices.push_back({ 4,  9,  5});
+	m_shape.indices.push_back({ 2,  4, 11});
+	m_shape.indices.push_back({ 6,  2, 10});
+	m_shape.indices.push_back({ 8,  6,  7});
+	m_shape.indices.push_back({ 9,  8,  1});
+
 
 	// vbo for triangle
 	glGenBuffers(1, &m_shape.vbos.pos);
@@ -225,18 +259,17 @@ void OpenGLWindow::paintGL()
 
 	QMatrix4x4 model;
 	model.rotate(m_angle, {0.0f, 1.0f, 0.0f});
-	
+
 	QMatrix4x4 view;
 	view.lookAt
 	(
-		{0.0f, 0.0f, 0.0f},
-		{0.0f, 0.0f, 0.0f},
+		{1.0f, 1.0f, 1.0f}, // world space
+		{0.0f, 0.0f, 0.0f}, // world space
 		{0.0f, 0.0f, 1.0f}
 	);
 
 	QMatrix4x4 proj;
-	proj.perspective(60.0f, 16.0f / 9.0f, 0.1f, 100.0f);
-	proj.translate(0.0f, 0.0f, -2.0f);
+	proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
 
 	const QMatrix4x4 matrix = proj * view * model;
 
@@ -262,7 +295,8 @@ void OpenGLWindow::paintGL()
 
 	// re-direct rendering to frame buffer
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fb_id);
-	glClear(GL_COLOR_BUFFER_BIT); // so we can work on a clean empty framebuffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // so we can work on a clean empty framebuffer
+	glEnable(GL_DEPTH_TEST);
 
 	GLfloat texture_data[] =
 	{
@@ -271,14 +305,17 @@ void OpenGLWindow::paintGL()
 		0.0f, 0.0f, 1.0f, 1.0f,
 		1.0f, 1.0f, 1.0f, 1.0f
 	};
-	texture_data[0] = (sin(time*4.0f) + 1.0f) / 2.0f;
-	texture_data[5] = (sin(time*4.0f) + 1.0f) / 2.0f;
-	texture_data[10] = (sin(time*4.0f) + 1.0f) / 2.0f;
+	texture_data[1] = (sin(time*4.0f) + 1.0f) / 2.0f;
+	texture_data[4] = (sin(time*4.0f) + 1.0f) / 2.0f;
+	texture_data[9] = (sin(time*4.0f) + 1.0f) / 2.0f;
 	glTextureSubImage2D(m_texture_id, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
 
 	// actual draw call of the shape (triangle)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
+	if (m_show_wire_frame)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_shape.indices.size(), GL_UNSIGNED_INT, nullptr);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	m_program->release();
 	glDisableVertexAttribArray(1);
@@ -286,6 +323,7 @@ void OpenGLWindow::paintGL()
 
 	// switch back to back buffer
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST); // fb does not have depth
 
 	m_post_process_program->bind();
 	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
@@ -330,6 +368,12 @@ void OpenGLWindow::setAnimating(bool animating)
     {
         disconnect(this, &OpenGLWindow::frameSwapped, this, SELECT<void>::OVERLOAD_OF(&OpenGLWindow::update));
     }
+}
+
+void OpenGLWindow::showWireFrame(bool status)
+{
+	m_show_wire_frame = status;
+	requestUpdate();
 }
 
 void OpenGLWindow::updateFrameTime()
