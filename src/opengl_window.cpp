@@ -14,7 +14,9 @@
 
 namespace
 {
-	const float ANIMATION_SPEED = 100.0f;
+	const float ANIMATION_SPEED           = 100.0f;
+	const uint_fast16_t RESOLUTION_WIDTH  = 1920;
+	const uint_fast16_t RESOLUTION_HEIGHT = 1080;
 
 	static const char* vertexShaderSource =
 		"#version 450 core\n"
@@ -130,13 +132,13 @@ void OpenGLWindow::initializeGL()
 	// create framebuffer color
 	glGenTextures(1, &m_fb_col_id);
 	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1920, 1080, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, RESOLUTION_WIDTH, RESOLUTION_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// create framebuffer depth
 	glGenTextures(1, &m_fb_depth_id);
 	glBindTexture(GL_TEXTURE_2D, m_fb_depth_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1920, 1080, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, RESOLUTION_WIDTH, RESOLUTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// upload framebuffer
