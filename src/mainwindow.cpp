@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
 	DEBUG_CALL(format.setOption(QSurfaceFormat::DebugContext));
 
 	m_glWindow->setFormat(format);
-	m_glWindow->resize(640, 480);
+	m_glWindow->resize(1024, 768);
 
 	QWidget* glContainer = QWidget::createWindowContainer(m_glWindow.get(), this);
 	m_ui->mainLayout->replaceWidget(m_ui->glWidgetContainer, glContainer, Qt::FindDirectChildrenOnly);
