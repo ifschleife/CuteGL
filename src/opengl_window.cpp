@@ -17,44 +17,6 @@ namespace
 	const float ANIMATION_SPEED           = 100.0f;
 	const uint_fast16_t RESOLUTION_WIDTH  = 1920;
 	const uint_fast16_t RESOLUTION_HEIGHT = 1080;
-
-	static const char* vertexShaderSource =
-		"#version 450 core\n"
-		"in vec3 posAttr;\n"
-		"in vec2 textureCoordAttr;\n"
-		"out vec2 textureCoord;\n"
-		"uniform mat4 matrix;\n"
-		"void main() {\n"
-		"   textureCoord = textureCoordAttr;\n"
-		"   gl_Position = matrix * vec4(posAttr, 1.0);\n"
-		"}\n";
-
-	static const char* fragmentShaderSource =
-		"#version 450 core\n"
-		"layout(location = 0) out vec4 outColor;\n"
-		"in vec2 textureCoord;\n"
-		"uniform sampler2D tex;\n"
-		"void main() {\n"
-		"   vec4 col = texture(tex, textureCoord);\n"
-		"   outColor = vec4(col.rgb, 1.0);\n"
-		"}\n";
-
-	static const char* postProcessVS =
-		"#version 450 core\n"
-		"in vec2 posAttr;\n"
-		"uniform vec2 res;\n"
-		"void main() {\n"
-		"   gl_Position = vec4(posAttr, 0.0, 1.0);\n"
-		"}\n";
-
-	static const char* postProcessFS =
-		"#version 450 core\n"
-		"layout(location = 0) out vec4 outColor;\n"
-		"uniform sampler2D tex;\n"
-		"void main() {\n"
-		"   vec4 col = texelFetch(tex, ivec2(gl_FragCoord.xy), 0).rgba;\n"
-		"   outColor = vec4(vec3(1.0, 1.0, 1.0) - col.rgb, 1.0); \n"
-		"}\n";
 }
 
 
@@ -100,23 +62,27 @@ void OpenGLWindow::initializeGL()
 
 	// shaders for shape
 	bool shaders_ok = true;
-	shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-	shaders_ok |= m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+	shaders_ok |= m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/normal_vs.glsl");
+	shaders_ok |= m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/normal_fs.glsl");
 	shaders_ok |= m_program->link();
 	if (!shaders_ok)
 	{
 		qDebug() << m_program->log();
 	}
+	
+	glGenBuffers(1, &m_vbo_uniform);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_vbo_uniform);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(m_uniform_block), (void*)&m_uniform_block, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	m_posAttr = m_program->attributeLocation("posAttr");
+	m_posAttr = m_program->attributeLocation("position");
 	m_textureCoordAttr = m_program->attributeLocation("textureCoordAttr");
-	m_matrixUniform = m_program->uniformLocation("matrix");
 	m_texture_uniform = m_program->uniformLocation("tex");
 
 	// shaders for framebuffer quad
 	shaders_ok = true;
-	shaders_ok |= m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Vertex, postProcessVS);
-	shaders_ok |= m_post_process_program->addShaderFromSourceCode(QOpenGLShader::Fragment, postProcessFS);
+	shaders_ok |= m_post_process_program->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/post_process_vs.glsl");
+	shaders_ok |= m_post_process_program->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/post_process_fs.glsl");
 	shaders_ok |= m_post_process_program->link();
 	if (!shaders_ok)
 	{
@@ -126,7 +92,7 @@ void OpenGLWindow::initializeGL()
 	//glGetShaderInfoLog(m_program->shaders()[0]->shaderId(), 512, nullptr, buffer);
 	//qDebug() << buffer;
 
-	m_post_process_pos_attr = m_post_process_program->attributeLocation("posAttr");
+	m_post_process_pos_attr = m_post_process_program->attributeLocation("position");
 	m_post_process_tex_uniform = m_post_process_program->uniformLocation("tex");
 
 	// create framebuffer color
@@ -272,19 +238,19 @@ void OpenGLWindow::paintGL()
 	proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
 
 	const QMatrix4x4 matrix = proj * view * model;
+	m_uniform_block.matrix = matrix;
 
 	m_program->bind();
 
-	m_program->setUniformValue(m_matrixUniform, matrix);
 	m_program->setUniformValue(m_texture_uniform, 0); // 0 == texture slot number from glActiveTexture
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_vbo_uniform);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(m_uniform_block), (void*)&m_uniform_block);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
 	glBindBuffer(GL_ARRAY_BUFFER, m_shape.vbos.pos);
 	glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_vertices
-	
-	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture_coords);
-	glVertexAttribPointer(m_textureCoordAttr, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 	
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_texture_id);

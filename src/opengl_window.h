@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QMatrix4x4>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLWindow>
 
@@ -14,6 +15,10 @@ class QOpenGLDebugMessage;
 class QOpenGLShaderProgram;
 class QTimer;
 
+struct UniformBlock
+{
+	QMatrix4x4 matrix;
+};
 
 class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
 {
@@ -47,7 +52,6 @@ private:
 
 	GLuint m_posAttr;
 	GLuint m_textureCoordAttr;
-	GLuint m_matrixUniform;
 	
 	GLuint m_index_buffer;
 	GLuint m_vbo_texture_coords;
@@ -62,6 +66,9 @@ private:
 	GLuint m_post_process_tex_uniform;
 
 	GLuint m_vbo_quad;
+
+	UniformBlock m_uniform_block;
+	GLuint m_vbo_uniform;
 
 	std::unique_ptr<QTimer> m_frame_timer;
 	uint_fast8_t m_frame_counter{0};
