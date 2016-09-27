@@ -9,6 +9,7 @@
 #include <chrono>
 #include <stdexcept>
 
+#include "framebuffer.h"
 #include "util.h"
 
 
@@ -21,7 +22,8 @@ namespace
 
 
 OpenGLWindow::OpenGLWindow()
-	: m_frame_timer(std::make_unique<QTimer>())
+	: m_framebuffer(std::make_unique<Framebuffer>())
+	, m_frame_timer(std::make_unique<QTimer>())
 	, m_logger(std::make_unique<QOpenGLDebugLogger>())
 	, m_post_process_program(std::make_unique<QOpenGLShaderProgram>())
 	, m_program(std::make_unique<QOpenGLShaderProgram>())
@@ -32,29 +34,14 @@ OpenGLWindow::OpenGLWindow()
 	connect(m_frame_timer.get(), &QTimer::timeout, this, &OpenGLWindow::updateFrameTime);
 }
 
-void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
-{
-	qDebug() << msg;
-	if (msg.severity() == QOpenGLDebugMessage::HighSeverity)
-	{
-		throw std::runtime_error(msg.message().toStdString());
-	}
-}
-
-GLuint OpenGLWindow::loadShader(GLenum type, const char* source)
-{
-	GLuint shader = glCreateShader(type);
-	glShaderSource(shader, 1, &source, 0);
-	glCompileShader(shader);
-	return shader;
-}
-
 void OpenGLWindow::initializeGL()
 {
 	initializeOpenGLFunctions();
 
 	DEBUG_CALL(m_logger->initialize());
 	DEBUG_CALL(m_logger->startLogging(QOpenGLDebugLogger::SynchronousLogging));
+
+	m_framebuffer->initialize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
 
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -94,25 +81,6 @@ void OpenGLWindow::initializeGL()
 
 	m_post_process_pos_attr = m_post_process_program->attributeLocation("position");
 	m_post_process_tex_uniform = m_post_process_program->uniformLocation("tex");
-
-	// create framebuffer color
-	glGenTextures(1, &m_fb_col_id);
-	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, RESOLUTION_WIDTH, RESOLUTION_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// create framebuffer depth
-	glGenTextures(1, &m_fb_depth_id);
-	glBindTexture(GL_TEXTURE_2D, m_fb_depth_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, RESOLUTION_WIDTH, RESOLUTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// upload framebuffer
-	glGenFramebuffers(1, &m_fb_id);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_fb_id);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_fb_col_id, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_fb_depth_id, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// vbo for a quad
 	GLfloat quad[] =
@@ -260,9 +228,7 @@ void OpenGLWindow::paintGL()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// re-direct rendering to frame buffer
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fb_id);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // so we can work on a clean empty framebuffer
-	glEnable(GL_DEPTH_TEST);
+	m_framebuffer->clear();
 
 	GLfloat texture_data[] =
 	{
@@ -294,12 +260,7 @@ void OpenGLWindow::paintGL()
 	m_post_process_program->bind();
 	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_fb_col_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	m_framebuffer->bind_color_texture();
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
@@ -346,4 +307,19 @@ void OpenGLWindow::updateFrameTime()
 {
 	emit frameTime(m_frame_counter / 3.60f);
 	m_frame_counter = 0;
+}
+
+
+void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
+{
+	qDebug() << msg;
+	if (msg.severity() == QOpenGLDebugMessage::HighSeverity)
+	{
+		throw std::runtime_error(msg.message().toStdString());
+	}
+}
+
+void OpenGLWindow::resizeGL(int width, int height)
+{
+	m_framebuffer->resize(width, height);
 }

@@ -1,10 +1,12 @@
 set(SOURCES
+    framebuffer.cpp
     main.cpp
     mainwindow.cpp
     opengl_window.cpp
     )
 
 set(HEADERS
+    framebuffer.h
     mainwindow.h
     opengl_window.h
     shape.h

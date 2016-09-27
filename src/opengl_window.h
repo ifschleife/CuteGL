@@ -10,6 +10,7 @@
 #include "shape.h"
 
 
+class Framebuffer;
 class QOpenGLDebugLogger;
 class QOpenGLDebugMessage;
 class QOpenGLShaderProgram;
@@ -19,6 +20,7 @@ struct UniformBlock
 {
 	QMatrix4x4 matrix;
 };
+
 
 class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
 {
@@ -42,9 +44,11 @@ private slots:
 	void handle_log_message(const QOpenGLDebugMessage& msg);
 
 private:
-	GLuint loadShader(GLenum type, const char* source);
+	void resizeGL(int width, int height) override;
 
 private:
+	std::unique_ptr<Framebuffer> m_framebuffer{nullptr};
+
 	std::unique_ptr<QOpenGLDebugLogger> m_logger;
 
 	std::unique_ptr<QOpenGLShaderProgram> m_post_process_program;
@@ -57,10 +61,6 @@ private:
 	GLuint m_vbo_texture_coords;
 	GLuint m_texture_id;
 	GLuint m_texture_uniform;
-
-	GLuint m_fb_id;
-	GLuint m_fb_col_id;
-	GLuint m_fb_depth_id;
 
 	GLuint m_post_process_pos_attr;
 	GLuint m_post_process_tex_uniform;
