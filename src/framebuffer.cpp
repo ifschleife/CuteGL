@@ -27,6 +27,9 @@ void Framebuffer::clear()
 
 void Framebuffer::resize(uint_fast16_t width, uint_fast16_t height)
 {
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
 	glDeleteTextures(1, &m_fb_col_id);
 	glDeleteTextures(1, &m_fb_depth_id);
 	glDeleteFramebuffers(1, &m_fb_id);
