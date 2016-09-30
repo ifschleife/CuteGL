@@ -200,6 +200,9 @@ void OpenGLWindow::paintGL()
 	texture_data[4] = (sin(time*4.0f) + 1.0f) / 2.0f;
 	texture_data[9] = (sin(time*4.0f) + 1.0f) / 2.0f;
 	glTextureSubImage2D(m_texture_id, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
+	
+	glEnable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT_FACE);
 
 	// actual draw call of the shape (triangle)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
@@ -215,6 +218,7 @@ void OpenGLWindow::paintGL()
 	// switch back to back buffer
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // fb does not have depth
+	glDisable(GL_CULL_FACE);
 
 	m_post_process_program->bind();
 	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
@@ -280,7 +284,7 @@ void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
 
 void OpenGLWindow::add_sub_div_sphere(const Vec3D& pos, float size)
 {
-	const float t = 1.0f;// (1.0f + sqrt(5.0f)) / 4.0f;
+	const float t = (1.0f + sqrt(5.0f)) / 4.0f;
 
 	m_shape.add_normalized_vertex({-0.5f,  t, 0.0f});
 	m_shape.add_normalized_vertex({0.5f,  t, 0.0f});
