@@ -3,6 +3,7 @@ set(SOURCES
     main.cpp
     mainwindow.cpp
     opengl_window.cpp
+    shape.cpp
     )
 
 set(HEADERS

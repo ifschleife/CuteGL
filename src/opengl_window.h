@@ -44,6 +44,7 @@ private slots:
 	void handle_log_message(const QOpenGLDebugMessage& msg);
 
 private:
+	void add_sub_div_sphere(const Vec3D& pos, float size);
 	void resizeGL(int width, int height) override;
 
 private:

@@ -95,48 +95,7 @@ void OpenGLWindow::initializeGL()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	const float t = (1.0f + sqrt(5.0f)) / 4.0f;
-
-	m_shape.positions.push_back({-0.5f,  t, 0.0f});
-	m_shape.positions.push_back({ 0.5f,  t, 0.0f});
-	m_shape.positions.push_back({-0.5f, -t, 0.0f});
-	m_shape.positions.push_back({ 0.5f, -t, 0.0f});
-
-	m_shape.positions.push_back({0.0f, -0.5f,  t});
-	m_shape.positions.push_back({0.0f,  0.5f,  t});
-	m_shape.positions.push_back({0.0f, -0.5f, -t});
-	m_shape.positions.push_back({0.0f,  0.5f, -t});
-
-	m_shape.positions.push_back({ t, 0.0f, -0.5f});
-	m_shape.positions.push_back({ t, 0.0f,  0.5f});
-	m_shape.positions.push_back({-t, 0.0f, -0.5f});
-	m_shape.positions.push_back({-t, 0.0f,  0.5f});
-
-
-	m_shape.indices.push_back({ 0, 11,  5});
-	m_shape.indices.push_back({ 0,  5,  1});
-	m_shape.indices.push_back({ 0,  1,  7});
-	m_shape.indices.push_back({ 0,  7, 10});
-	m_shape.indices.push_back({ 0, 10, 11});
-
-	m_shape.indices.push_back({ 1,  5,  9});
-	m_shape.indices.push_back({ 5, 11,  4});
-	m_shape.indices.push_back({11, 10,  2});
-	m_shape.indices.push_back({10,  7,  6});
-	m_shape.indices.push_back({ 7,  1,  8});
-
-	m_shape.indices.push_back({ 3,  9,  4});
-	m_shape.indices.push_back({ 3,  4,  2});
-	m_shape.indices.push_back({ 3,  2,  6});
-	m_shape.indices.push_back({ 3,  6,  8});
-	m_shape.indices.push_back({ 3,  8,  9});
-
-	m_shape.indices.push_back({ 4,  9,  5});
-	m_shape.indices.push_back({ 2,  4, 11});
-	m_shape.indices.push_back({ 6,  2, 10});
-	m_shape.indices.push_back({ 8,  6,  7});
-	m_shape.indices.push_back({ 9,  8,  1});
-
+	add_sub_div_sphere({0.0f, 0.0f, 0.5f}, 0.5f);
 
 	// vbo for triangle
 	glGenBuffers(1, &m_shape.vbos.pos);
@@ -317,6 +276,53 @@ void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
 	{
 		throw std::runtime_error(msg.message().toStdString());
 	}
+}
+
+void OpenGLWindow::add_sub_div_sphere(const Vec3D& pos, float size)
+{
+	const float t = 1.0f;// (1.0f + sqrt(5.0f)) / 4.0f;
+
+	m_shape.add_normalized_vertex({-0.5f,  t, 0.0f});
+	m_shape.add_normalized_vertex({0.5f,  t, 0.0f});
+	m_shape.add_normalized_vertex({-0.5f, -t, 0.0f});
+	m_shape.add_normalized_vertex({0.5f, -t, 0.0f});
+
+	m_shape.add_normalized_vertex({0.0f, -0.5f,  t});
+	m_shape.add_normalized_vertex({0.0f,  0.5f,  t});
+	m_shape.add_normalized_vertex({0.0f, -0.5f, -t});
+	m_shape.add_normalized_vertex({0.0f,  0.5f, -t});
+
+	m_shape.add_normalized_vertex({t, 0.0f, -0.5f});
+	m_shape.add_normalized_vertex({t, 0.0f,  0.5f});
+	m_shape.add_normalized_vertex({-t, 0.0f, -0.5f});
+	m_shape.add_normalized_vertex({-t, 0.0f,  0.5f});
+
+	m_shape.indices.push_back({0, 11,  5});
+	m_shape.indices.push_back({0,  5,  1});
+	m_shape.indices.push_back({0,  1,  7});
+	m_shape.indices.push_back({0,  7, 10});
+	m_shape.indices.push_back({0, 10, 11});
+
+	m_shape.indices.push_back({1,  5,  9});
+	m_shape.indices.push_back({5, 11,  4});
+	m_shape.indices.push_back({11, 10,  2});
+	m_shape.indices.push_back({10,  7,  6});
+	m_shape.indices.push_back({7,  1,  8});
+
+	m_shape.indices.push_back({3,  9,  4});
+	m_shape.indices.push_back({3,  4,  2});
+	m_shape.indices.push_back({3,  2,  6});
+	m_shape.indices.push_back({3,  6,  8});
+	m_shape.indices.push_back({3,  8,  9});
+
+	m_shape.indices.push_back({4,  9,  5});
+	m_shape.indices.push_back({2,  4, 11});
+	m_shape.indices.push_back({6,  2, 10});
+	m_shape.indices.push_back({8,  6,  7});
+	m_shape.indices.push_back({9,  8,  1});
+
+	m_shape.sub_divide(4);
+	m_shape.scale(size);
 }
 
 void OpenGLWindow::resizeGL(int width, int height)
