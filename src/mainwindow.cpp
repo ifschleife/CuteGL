@@ -30,9 +30,8 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
 	connect(m_glWindow.get(), &OpenGLWindow::frameTime, this, &MainWindow::showFrameTime);
 }
 
-MainWindow::~MainWindow()
-{
-}
+MainWindow::~MainWindow() = default;
+
 
 void MainWindow::showFrameTime(float time_in_ms)
 {

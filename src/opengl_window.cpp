@@ -34,6 +34,8 @@ OpenGLWindow::OpenGLWindow()
 	connect(m_frame_timer.get(), &QTimer::timeout, this, &OpenGLWindow::updateFrameTime);
 }
 
+OpenGLWindow::~OpenGLWindow() = default;
+
 void OpenGLWindow::initializeGL()
 {
 	initializeOpenGLFunctions();

@@ -28,6 +28,7 @@ class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_3_Core
 
 public:
 	OpenGLWindow();
+    ~OpenGLWindow() override;
 
 	void initializeGL() override;
 	void paintGL() override;
