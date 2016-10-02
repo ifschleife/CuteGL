@@ -1,11 +1,12 @@
 #include "shape.h"
 
 #include <cassert>
+#include <math.h>
 
 
 float Vec3D::length() const
 {
-	return sqrt(x*x + y*y + z*z);
+    return std::sqrt(x*x + y*y + z*z);
 }
 
 void Vec3D::normalize()

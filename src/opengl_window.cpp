@@ -7,6 +7,7 @@
 #include <QTimer>
 
 #include <chrono>
+#include <math.h>
 #include <stdexcept>
 
 #include "framebuffer.h"
@@ -149,7 +150,7 @@ void OpenGLWindow::paintGL()
 
 	if (m_animating)
 	{
-		m_angle = fmod(ANIMATION_SPEED * time, 360.0f);
+        m_angle = std::fmod(ANIMATION_SPEED * time, 360.0f);
 	}
 
 	QMatrix4x4 model;
@@ -286,7 +287,7 @@ void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
 
 void OpenGLWindow::add_sub_div_sphere(const Vec3D& pos, float size)
 {
-	const float t = (1.0f + sqrt(5.0f)) / 4.0f;
+    const float t = (1.0f + std::sqrt(5.0f)) / 4.0f;
 
 	m_shape.add_normalized_vertex({-0.5f,  t, 0.0f});
 	m_shape.add_normalized_vertex({0.5f,  t, 0.0f});
