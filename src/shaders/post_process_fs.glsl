@@ -1,4 +1,4 @@
-#version 450 core
+#version 430 core
 
 in vec3 normal;
 
@@ -9,4 +9,4 @@ void main()
 {
 	vec4 col = texelFetch(tex, ivec2(gl_FragCoord.xy), 0).rgba;
 	outColor = vec4(vec3(1.0) - col.rgb, 1.0);
-};
+}

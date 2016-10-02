@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMatrix4x4>
-#include <QOpenGLFunctions_4_5_Core>
+#include <QOpenGLFunctions_4_3_Core>
 #include <QOpenGLWindow>
 
 #include <chrono>
@@ -22,7 +22,7 @@ struct UniformBlock
 };
 
 
-class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
+class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_3_Core
 {
 	Q_OBJECT
 
@@ -48,11 +48,14 @@ private:
 	void resizeGL(int width, int height) override;
 
 private:
-	std::unique_ptr<Framebuffer> m_framebuffer{nullptr};
+    std::unique_ptr<Framebuffer> m_framebuffer;
 
-	std::unique_ptr<QOpenGLDebugLogger> m_logger;
+    std::unique_ptr<QTimer> m_frame_timer;
+    uint_fast8_t m_frame_counter{0};
 
-	std::unique_ptr<QOpenGLShaderProgram> m_post_process_program;
+    std::unique_ptr<QOpenGLDebugLogger> m_logger;
+
+    std::unique_ptr<QOpenGLShaderProgram> m_post_process_program;
 	std::unique_ptr<QOpenGLShaderProgram> m_program;
 
 	GLuint m_posAttr;
@@ -71,10 +74,7 @@ private:
 	UniformBlock m_uniform_block;
 	GLuint m_vbo_uniform;
 
-	std::unique_ptr<QTimer> m_frame_timer;
-	uint_fast8_t m_frame_counter{0};
-
-	bool m_animating{false};
+    bool m_animating{false};
 	float m_angle{0.0f};
 
 	bool m_show_wire_frame{false};

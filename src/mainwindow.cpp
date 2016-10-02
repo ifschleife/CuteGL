@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
 	QSurfaceFormat format;
 	format.setSamples(1);
 	format.setProfile(QSurfaceFormat::CoreProfile);
-	format.setVersion(4, 5);
+    format.setVersion(4, 3);
 	DEBUG_CALL(format.setOption(QSurfaceFormat::DebugContext));
 
 	m_glWindow->setFormat(format);
