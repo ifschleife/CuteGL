@@ -34,11 +34,11 @@ struct Shape
 {
 	std::vector<Vec3D>                        positions; ///< vbo vertex positions
 	std::vector<std::array<float, 3>>         normals;   ///< vertex normals
-	std::vector<std::array<uint_fast32_t, 3>> indices;   ///< vbo indices
+    std::vector<std::array<uint32_t, 3>> indices;   ///< vbo indices
 
 	GLShape vbos;
 
-	uint_fast32_t add_normalized_vertex(const Vec3D&& vtx);
+    uint32_t add_normalized_vertex(const Vec3D&& vtx);
 	void scale(float factor);
 	void sub_divide(uint_fast8_t level);
 };

@@ -50,9 +50,9 @@ Vec3D& Vec3D::operator*(float m)
 }
 
 
-uint_fast32_t Shape::add_normalized_vertex(const Vec3D&& vtx)
+uint32_t Shape::add_normalized_vertex(const Vec3D&& vtx)
 {
-	const auto idx = static_cast<uint_fast32_t>(positions.size());
+    const auto idx = static_cast<uint32_t>(positions.size());
 	positions.emplace_back(vtx);
 	positions.back().normalize();
 	return idx;
@@ -72,7 +72,7 @@ void Shape::sub_divide(uint_fast8_t level)
 
 	for (int i = 0; i < level; ++i)
 	{
-		std::vector<std::array<uint_fast32_t, 3>> new_faces;
+        std::vector<std::array<uint32_t, 3>> new_faces;
 
 		for (const auto& face : indices)
 		{
