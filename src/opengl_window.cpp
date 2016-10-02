@@ -102,12 +102,12 @@ void OpenGLWindow::initializeGL()
 	// vbo for triangle
 	glGenBuffers(1, &m_shape.vbos.pos);
 	glBindBuffer(GL_ARRAY_BUFFER, m_shape.vbos.pos);
-	glBufferData(GL_ARRAY_BUFFER, m_shape.positions.size() * sizeof(m_shape.positions[0]), &m_shape.positions[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_shape.positions.size() * sizeof(m_shape.positions[0]), m_shape.positions.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glGenBuffers(1, &m_shape.vbos.index);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_shape.indices.size() * sizeof(m_shape.indices[0]), &m_shape.indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_shape.indices.size() * sizeof(m_shape.indices[0]), m_shape.indices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	GLfloat texture_coords[] =
