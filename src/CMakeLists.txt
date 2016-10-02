@@ -21,14 +21,17 @@ set(UI_FILES
 set(QRC_FILES
     )
 
+file(GLOB_RECURSE RES_FILES *.glsl) # shader code
+
 find_package(Qt5Core REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
 add_executable(${PROJECT_NAME} WIN32
-    ${SOURCES} ${HEADERS} ${UI_FILES} ${QRC_FILES})
+    ${SOURCES} ${HEADERS} ${UI_FILES} ${QRC_FILES} ${RES_FILES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
+
 
 # copy dlls next to compiled binary
 if (WIN32)
