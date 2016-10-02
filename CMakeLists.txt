@@ -3,7 +3,7 @@ project(CuteGL)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 if(WIN32)
 	file(TO_CMAKE_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug" ProjectDebugOut)
@@ -14,7 +14,7 @@ if(WIN32)
 	set(CMAKE_PREFIX_PATH "C://Qt//Qt5.7.0//5.7//msvc2015_64" ${CMAKE_PREFIX_PATH})
 
 elseif(UNIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Werror -pedantic -pedantic-errors \
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -pedantic -pedantic-errors \
                                             -Wfloat-conversion")
 endif()
 
