@@ -192,17 +192,17 @@ void OpenGLWindow::paintGL()
 	// re-direct rendering to frame buffer
 	m_framebuffer->clear();
 
-	GLfloat texture_data[] =
-	{
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f
-	};
-	texture_data[1] = (sin(time*4.0f) + 1.0f) / 2.0f;
-	texture_data[4] = (sin(time*4.0f) + 1.0f) / 2.0f;
-	texture_data[9] = (sin(time*4.0f) + 1.0f) / 2.0f;
-	glTextureSubImage2D(m_texture_id, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
+    GLfloat texture_data[] =
+    {
+        1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f
+    };
+    texture_data[1] = ((float)sin(time*4.0f) + 1.0f) / 2.0f;
+    texture_data[4] = ((float)sin(time*4.0f) + 1.0f) / 2.0f;
+    texture_data[9] = ((float)sin(time*4.0f) + 1.0f) / 2.0f;
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
 	
 	glEnable(GL_CULL_FACE);
 	//glCullFace(GL_FRONT_FACE);
