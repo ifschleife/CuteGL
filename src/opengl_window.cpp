@@ -253,13 +253,13 @@ void OpenGLWindow::setAnimating(bool animating)
         // (frameSwapped signal is emitted), we schedule a new update. This
         // obviously assumes that the swap interval (see
         // QSurfaceFormat::setSwapInterval()) is non-zero.
-        connect(this, &OpenGLWindow::frameSwapped, this, qOverload<>(&OpenGLWindow::update));
+        connect(this, &OpenGLWindow::frameSwapped, this, QOverload<>::of(&OpenGLWindow::update));
         
 		update();
     }
     else
     {
-        disconnect(this, &OpenGLWindow::frameSwapped, this, qOverload<>(&OpenGLWindow::update));
+        disconnect(this, &OpenGLWindow::frameSwapped, this, QOverload<>::of(&OpenGLWindow::update));
     }
 }
 
