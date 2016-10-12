@@ -3,6 +3,7 @@ set(SOURCES
     main.cpp
     mainwindow.cpp
     opengl_window.cpp
+    shader.cpp
     shape.cpp
     )
 
@@ -10,6 +11,7 @@ set(HEADERS
     framebuffer.h
     mainwindow.h
     opengl_window.h
+    shader.h
     shape.h
     util.h
     )
