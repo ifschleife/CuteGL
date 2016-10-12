@@ -11,6 +11,7 @@ struct GLShape
 {
 	GLuint index;
 	GLuint pos;
+	GLuint texture;
 };
 
 struct Vec3D
@@ -32,8 +33,8 @@ struct Vec3D
 
 struct Shape
 {
-	std::vector<Vec3D>                        positions; ///< vbo vertex positions
-	std::vector<std::array<float, 3>>         normals;   ///< vertex normals
+	std::vector<Vec3D>                   positions; ///< vbo vertex positions
+	std::vector<std::array<float, 3>>    normals;   ///< vertex normals
     std::vector<std::array<uint32_t, 3>> indices;   ///< vbo indices
 
 	GLShape vbos;

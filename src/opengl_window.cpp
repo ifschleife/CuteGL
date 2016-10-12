@@ -11,6 +11,7 @@
 #include <stdexcept>
 
 #include "framebuffer.h"
+#include "shader.h"
 #include "util.h"
 
 
@@ -26,8 +27,6 @@ OpenGLWindow::OpenGLWindow()
 	: m_framebuffer(std::make_unique<Framebuffer>())
 	, m_frame_timer(std::make_unique<QTimer>())
 	, m_logger(std::make_unique<QOpenGLDebugLogger>())
-	, m_post_process_program(std::make_unique<QOpenGLShaderProgram>())
-	, m_program(std::make_unique<QOpenGLShaderProgram>())
 {
 	m_frame_timer->setInterval(1000);
 
@@ -51,39 +50,32 @@ void OpenGLWindow::initializeGL()
 	glBindVertexArray(vao);
 
 	// shaders for shape
-	bool shaders_ok = true;
-	shaders_ok |= m_program->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/normal_vs.glsl");
-	shaders_ok |= m_program->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/normal_fs.glsl");
-	shaders_ok |= m_program->link();
-	if (!shaders_ok)
+	m_sphere_shader = std::make_unique<Shader>();
+	m_sphere_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/normal_vs.glsl");
+	m_sphere_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/normal_fs.glsl");
+	if (!m_sphere_shader->link())
 	{
-		qDebug() << m_program->log();
+		qDebug() << m_sphere_shader->log();
 	}
 	
-	glGenBuffers(1, &m_vbo_uniform);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_vbo_uniform);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(m_uniform_block), (void*)&m_uniform_block, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	m_sphere_shader->create_uniform_block((void*)&m_sphere_ub, sizeof(m_sphere_ub));
 
-	m_posAttr = m_program->attributeLocation("position");
-	m_textureCoordAttr = m_program->attributeLocation("textureCoordAttr");
-	m_texture_uniform = m_program->uniformLocation("tex");
+	m_sphere_shader->attributeLocation("position");
 
 	// shaders for framebuffer quad
-	shaders_ok = true;
-	shaders_ok |= m_post_process_program->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/post_process_vs.glsl");
-	shaders_ok |= m_post_process_program->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/post_process_fs.glsl");
-	shaders_ok |= m_post_process_program->link();
-	if (!shaders_ok)
+	m_post_process_shader = std::make_unique<Shader>();
+	m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/post_process_vs.glsl");
+	m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/post_process_fs.glsl");
+	if (!m_post_process_shader->link())
 	{
-		qDebug() << m_program->log();
+		qDebug() << m_post_process_shader->log();
 	}
 	//char buffer[512];
 	//glGetShaderInfoLog(m_program->shaders()[0]->shaderId(), 512, nullptr, buffer);
 	//qDebug() << buffer;
 
-	m_post_process_pos_attr = m_post_process_program->attributeLocation("position");
-	m_post_process_tex_uniform = m_post_process_program->uniformLocation("tex");
+	m_post_process_shader->attributeLocation("position");
+	m_post_process_shader->uniformLocation("tex");
 
 	// vbo for a quad
 	GLfloat quad[] =
@@ -100,39 +92,63 @@ void OpenGLWindow::initializeGL()
 
 	add_sub_div_sphere({0.0f, 0.0f, 0.5f}, 0.5f);
 
-	// vbo for triangle
-	glGenBuffers(1, &m_shape.vbos.pos);
-	glBindBuffer(GL_ARRAY_BUFFER, m_shape.vbos.pos);
-    glBufferData(GL_ARRAY_BUFFER, m_shape.positions.size() * sizeof(m_shape.positions[0]), m_shape.positions.data(), GL_STATIC_DRAW);
+	// vbo for sphere
+	glGenBuffers(1, &m_sphere.vbos.pos);
+	glBindBuffer(GL_ARRAY_BUFFER, m_sphere.vbos.pos);
+    glBufferData(GL_ARRAY_BUFFER, m_sphere.positions.size() * sizeof(m_sphere.positions[0]), m_sphere.positions.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	glGenBuffers(1, &m_shape.vbos.index);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_shape.indices.size() * sizeof(m_shape.indices[0]), m_shape.indices.data(), GL_STATIC_DRAW);
+	glGenBuffers(1, &m_sphere.vbos.index);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_sphere.vbos.index);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_sphere.indices.size() * sizeof(m_sphere.indices[0]), m_sphere.indices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	GLfloat texture_coords[] =
+/// create plane
+
+	m_plane_shader = std::make_unique<Shader>();
+
+	m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/plane_vs.glsl");
+	m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/texture_fs.glsl");
+	if (!m_plane_shader->link())
 	{
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		0.5f, 0.5f
-	};
-	glGenBuffers(1, &m_vbo_texture_coords);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_texture_coords);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
+		qDebug() << m_plane_shader->log();
+	}
+
+	m_plane_shader->create_uniform_block((void*)&m_plane_ub, sizeof(m_plane_ub));
+
+	m_plane.positions.push_back({-8.0f, 0.0f, -8.0f});
+	m_plane.positions.push_back({ 8.0f, 0.0f, -8.0f});
+	m_plane.positions.push_back({ 8.0f, 0.0f,  8.0f});
+	m_plane.positions.push_back({-8.0f, 0.0f,  8.0f});
+
+	m_plane.indices.push_back({0, 1, 2});
+	m_plane.indices.push_back({2, 3, 0});
+
+	// vbo for plane
+	glGenBuffers(1, &m_plane.vbos.pos);
+	glBindBuffer(GL_ARRAY_BUFFER, m_plane.vbos.pos);
+	glBufferData(GL_ARRAY_BUFFER, m_plane.positions.size() * sizeof(m_plane.positions[0]), m_plane.positions.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	GLfloat texture_data[] =
+	glGenBuffers(1, &m_plane.vbos.index);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.vbos.index);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_plane.indices.size() * sizeof(m_plane.indices[0]), m_plane.indices.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	GLubyte texture_data[] =
 	{
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f
+		  0,   0,   0,
+		255, 255, 255,
+		255, 255, 255,
+		  0,   0,   0,
 	};
-	glGenTextures(1, &m_texture_id);
-	glBindTexture(GL_TEXTURE_2D, m_texture_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2, 2, 0, GL_RGBA, GL_FLOAT, texture_data);
+	glGenTextures(1, &m_plane.vbos.texture);
+	glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
+	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	m_frame_timer->start();
@@ -168,72 +184,85 @@ void OpenGLWindow::paintGL()
 	proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
 
 	const QMatrix4x4 matrix = proj * view * model;
-	m_uniform_block.matrix = matrix;
+	m_sphere_ub.matrix = matrix;
 
-	m_program->bind();
-
-	m_program->setUniformValue(m_texture_uniform, 0); // 0 == texture slot number from glActiveTexture
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_vbo_uniform);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(m_uniform_block), (void*)&m_uniform_block);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	m_sphere_shader->bind();
+	m_sphere_shader->set_uniform_block_data((void*)&m_sphere_ub, sizeof(m_sphere_ub));
 
 	glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
-	glBindBuffer(GL_ARRAY_BUFFER, m_shape.vbos.pos);
-	glVertexAttribPointer(m_posAttr, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_vertices
+	glBindBuffer(GL_ARRAY_BUFFER, m_sphere.vbos.pos);
+	glVertexAttribPointer(m_sphere_shader->attributeLocation("position"), 3, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_vertices
 	
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_texture_id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 	// re-direct rendering to frame buffer
 	m_framebuffer->clear();
 
-    GLfloat texture_data[] =
-    {
-        1.0f, 0.0f, 0.0f, 1.0f,
-        0.0f, 1.0f, 0.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f
-    };
-    texture_data[1] = ((float)sin(time*4.0f) + 1.0f) / 2.0f;
-    texture_data[4] = ((float)sin(time*4.0f) + 1.0f) / 2.0f;
-    texture_data[9] = ((float)sin(time*4.0f) + 1.0f) / 2.0f;
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 2, 2, GL_RGBA, GL_FLOAT, texture_data);
-	
 	glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT_FACE);
 
 	// actual draw call of the shape (triangle)
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_shape.vbos.index);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_sphere.vbos.index);
 	if (m_show_wire_frame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_shape.indices.size(), GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_sphere.indices.size(), GL_UNSIGNED_INT, nullptr);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	m_program->release();
+	m_sphere_shader->release();
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
+	glDisable(GL_CULL_FACE);
+
+
+/// plane rendering
+	
+	m_plane_shader->bind();
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, m_plane.vbos.pos);
+	glVertexAttribPointer(m_plane_shader->attributeLocation("position"), 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+	QMatrix4x4 plane_model;
+	plane_model.rotate(90.0f, {1.0f, 0.0f, 0.0f});
+	m_plane_ub.matrix = proj * view * plane_model;
+	m_plane_shader->set_uniform_block_data((void*)&m_plane_ub, sizeof(m_plane_ub));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.vbos.index);
+	glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_plane.indices.size(), GL_UNSIGNED_INT, nullptr);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	m_plane_shader->release();
+	glDisableVertexAttribArray(1);
+	glDisable(GL_BLEND);
+
 
 	// switch back to back buffer
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST); // fb does not have depth
-	glDisable(GL_CULL_FACE);
 
-	m_post_process_program->bind();
-	m_post_process_program->setUniformValue(m_post_process_tex_uniform, 0); // 0 == texture slot number from glActiveTexture
+
+/// post processing
+
+	m_post_process_shader->bind();
 
 	m_framebuffer->bind_color_texture();
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_quad);
-	glVertexAttribPointer(m_post_process_pos_attr, 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_quad
+	glVertexAttribPointer(m_post_process_shader->attributeLocation("position"), 2, GL_FLOAT, GL_FALSE, 0, nullptr); // nullptr == uses currently bound buffer e.g. m_vbo_quad
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	m_post_process_program->release();
+	m_post_process_shader->release();
 
 	// clean up
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -289,47 +318,47 @@ void OpenGLWindow::add_sub_div_sphere(const Vec3D& pos, float size)
 {
     const float t = (1.0f + std::sqrt(5.0f)) / 4.0f;
 
-	m_shape.add_normalized_vertex({-0.5f,  t, 0.0f});
-	m_shape.add_normalized_vertex({0.5f,  t, 0.0f});
-	m_shape.add_normalized_vertex({-0.5f, -t, 0.0f});
-	m_shape.add_normalized_vertex({0.5f, -t, 0.0f});
+	m_sphere.add_normalized_vertex({-0.5f,  t, 0.0f});
+	m_sphere.add_normalized_vertex({0.5f,  t, 0.0f});
+	m_sphere.add_normalized_vertex({-0.5f, -t, 0.0f});
+	m_sphere.add_normalized_vertex({0.5f, -t, 0.0f});
 
-	m_shape.add_normalized_vertex({0.0f, -0.5f,  t});
-	m_shape.add_normalized_vertex({0.0f,  0.5f,  t});
-	m_shape.add_normalized_vertex({0.0f, -0.5f, -t});
-	m_shape.add_normalized_vertex({0.0f,  0.5f, -t});
+	m_sphere.add_normalized_vertex({0.0f, -0.5f,  t});
+	m_sphere.add_normalized_vertex({0.0f,  0.5f,  t});
+	m_sphere.add_normalized_vertex({0.0f, -0.5f, -t});
+	m_sphere.add_normalized_vertex({0.0f,  0.5f, -t});
 
-	m_shape.add_normalized_vertex({t, 0.0f, -0.5f});
-	m_shape.add_normalized_vertex({t, 0.0f,  0.5f});
-	m_shape.add_normalized_vertex({-t, 0.0f, -0.5f});
-	m_shape.add_normalized_vertex({-t, 0.0f,  0.5f});
+	m_sphere.add_normalized_vertex({t, 0.0f, -0.5f});
+	m_sphere.add_normalized_vertex({t, 0.0f,  0.5f});
+	m_sphere.add_normalized_vertex({-t, 0.0f, -0.5f});
+	m_sphere.add_normalized_vertex({-t, 0.0f,  0.5f});
 
-	m_shape.indices.push_back({0, 11,  5});
-	m_shape.indices.push_back({0,  5,  1});
-	m_shape.indices.push_back({0,  1,  7});
-	m_shape.indices.push_back({0,  7, 10});
-	m_shape.indices.push_back({0, 10, 11});
+	m_sphere.indices.push_back({0, 11,  5});
+	m_sphere.indices.push_back({0,  5,  1});
+	m_sphere.indices.push_back({0,  1,  7});
+	m_sphere.indices.push_back({0,  7, 10});
+	m_sphere.indices.push_back({0, 10, 11});
 
-	m_shape.indices.push_back({1,  5,  9});
-	m_shape.indices.push_back({5, 11,  4});
-	m_shape.indices.push_back({11, 10,  2});
-	m_shape.indices.push_back({10,  7,  6});
-	m_shape.indices.push_back({7,  1,  8});
+	m_sphere.indices.push_back({1,  5,  9});
+	m_sphere.indices.push_back({5, 11,  4});
+	m_sphere.indices.push_back({11, 10,  2});
+	m_sphere.indices.push_back({10,  7,  6});
+	m_sphere.indices.push_back({7,  1,  8});
 
-	m_shape.indices.push_back({3,  9,  4});
-	m_shape.indices.push_back({3,  4,  2});
-	m_shape.indices.push_back({3,  2,  6});
-	m_shape.indices.push_back({3,  6,  8});
-	m_shape.indices.push_back({3,  8,  9});
+	m_sphere.indices.push_back({3,  9,  4});
+	m_sphere.indices.push_back({3,  4,  2});
+	m_sphere.indices.push_back({3,  2,  6});
+	m_sphere.indices.push_back({3,  6,  8});
+	m_sphere.indices.push_back({3,  8,  9});
 
-	m_shape.indices.push_back({4,  9,  5});
-	m_shape.indices.push_back({2,  4, 11});
-	m_shape.indices.push_back({6,  2, 10});
-	m_shape.indices.push_back({8,  6,  7});
-	m_shape.indices.push_back({9,  8,  1});
+	m_sphere.indices.push_back({4,  9,  5});
+	m_sphere.indices.push_back({2,  4, 11});
+	m_sphere.indices.push_back({6,  2, 10});
+	m_sphere.indices.push_back({8,  6,  7});
+	m_sphere.indices.push_back({9,  8,  1});
 
-	m_shape.sub_divide(4);
-	m_shape.scale(size);
+	m_sphere.sub_divide(4);
+	m_sphere.scale(size);
 }
 
 void OpenGLWindow::resizeGL(int width, int height)

@@ -15,6 +15,7 @@ class QOpenGLDebugLogger;
 class QOpenGLDebugMessage;
 class QOpenGLShaderProgram;
 class QTimer;
+class Shader;
 
 struct UniformBlock
 {
@@ -56,29 +57,20 @@ private:
 
     std::unique_ptr<QOpenGLDebugLogger> m_logger;
 
-    std::unique_ptr<QOpenGLShaderProgram> m_post_process_program;
-	std::unique_ptr<QOpenGLShaderProgram> m_program;
-
-	GLuint m_posAttr;
-	GLuint m_textureCoordAttr;
-	
-	GLuint m_index_buffer;
-	GLuint m_vbo_texture_coords;
-	GLuint m_texture_id;
-	GLuint m_texture_uniform;
-
-	GLuint m_post_process_pos_attr;
-	GLuint m_post_process_tex_uniform;
+    std::unique_ptr<Shader> m_post_process_shader;
 
 	GLuint m_vbo_quad;
-
-	UniformBlock m_uniform_block;
-	GLuint m_vbo_uniform;
 
     bool m_animating{false};
 	float m_angle{0.0f};
 
 	bool m_show_wire_frame{false};
 
-	Shape m_shape;
+	Shape m_sphere;
+	std::unique_ptr<Shader> m_sphere_shader;
+	UniformBlock m_sphere_ub;
+
+	Shape m_plane;
+	std::unique_ptr<Shader> m_plane_shader;
+	UniformBlock m_plane_ub;
 };
