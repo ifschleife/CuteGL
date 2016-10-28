@@ -5,6 +5,7 @@ set(SOURCES
     opengl_window.cpp
     shader.cpp
     shape.cpp
+    util.cpp
     )
 
 set(HEADERS

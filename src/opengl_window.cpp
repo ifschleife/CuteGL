@@ -138,18 +138,15 @@ void OpenGLWindow::initializeGL()
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	GLubyte texture_data[] =
-	{
-		  0,   0,   0,
-		255, 255, 255,
-		255, 255, 255,
-		  0,   0,   0,
-	};
-	glGenTextures(1, &m_plane.vbos.texture);
+    const int w = 16;
+    const int h = 16;
+    const auto tex = generate_checker_board_texture(w, h);
+
+    glGenTextures(1, &m_plane.vbos.texture);
 	glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex->rgbSwapped().bits());
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
 	m_frame_timer->start();
 }
