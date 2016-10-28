@@ -41,6 +41,7 @@
 #include "mainwindow.h"
 #include "openglwindow.h"
 
+#include <memory>
 #include <QApplication>
 
 
@@ -48,8 +49,7 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    MainWindow* mainWindow = new MainWindow;
-
+    std::unique_ptr<MainWindow> mainWindow = std::make_unique<MainWindow>();
 
     mainWindow->show();
 

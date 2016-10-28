@@ -38,8 +38,9 @@
 **
 ****************************************************************************/
 
-#include <QtGui/QWindow>
+#include <memory>
 #include <QtGui/QOpenGLFunctions>
+#include <QtGui/QWindow>
 
 class QPainter;
 class QOpenGLContext;
@@ -64,14 +65,14 @@ public slots:
     void renderNow();
 
 protected:
-    bool event(QEvent *event) Q_DECL_OVERRIDE;
+    bool event(QEvent *event) override;
 
-    void exposeEvent(QExposeEvent *event) Q_DECL_OVERRIDE;
+    void exposeEvent(QExposeEvent *event) override;
 
 private:
     bool m_update_pending;
     bool m_animating;
 
-    QOpenGLContext *m_context;
-    QOpenGLPaintDevice *m_device;
+    std::unique_ptr<QOpenGLContext>     m_context;
+    std::unique_ptr<QOpenGLPaintDevice> m_device;
 };

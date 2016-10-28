@@ -1,5 +1,7 @@
 #include "openglwindow.h"
 
+#include <memory>
+
 
 class QOpenGLShaderProgram;
 
@@ -19,6 +21,8 @@ private:
     GLuint m_colAttr;
     GLuint m_matrixUniform;
 
-    QOpenGLShaderProgram *m_program;
+private:
+    QOpenGLShaderProgram* m_program;
     int m_frame;
 };
+
