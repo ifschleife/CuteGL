@@ -10,6 +10,6 @@ out vec2 texture_coord;
 
 void main()
 {
-	texture_coord = 4.0 * position.xz;
+    texture_coord = position.xz;
 	gl_Position = matrix * vec4(position, 1.0);
 }
