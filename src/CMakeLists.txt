@@ -1,4 +1,5 @@
 set(SOURCES
+    camera.cpp
     framebuffer.cpp
     main.cpp
     mainwindow.cpp
@@ -9,6 +10,7 @@ set(SOURCES
     )
 
 set(HEADERS
+    camera.h
     framebuffer.h
     mainwindow.h
     opengl_window.h

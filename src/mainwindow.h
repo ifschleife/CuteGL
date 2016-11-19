@@ -17,7 +17,9 @@ public:
     ~MainWindow() override;
 
 private:
-	void showFrameTime(float time_in_ms);
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
+    void showFrameTime(float time_in_ms);
 
 private:
     std::unique_ptr<OpenGLWindow> m_glWindow;

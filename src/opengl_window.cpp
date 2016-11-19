@@ -24,7 +24,8 @@ namespace
 
 
 OpenGLWindow::OpenGLWindow()
-	: m_framebuffer(std::make_unique<Framebuffer>())
+    : m_camera{{1.0f, 2.0f, 0.5f}}
+    , m_framebuffer(std::make_unique<Framebuffer>())
 	, m_frame_timer(std::make_unique<QTimer>())
 	, m_logger(std::make_unique<QOpenGLDebugLogger>())
 {
@@ -169,18 +170,11 @@ void OpenGLWindow::paintGL()
 	QMatrix4x4 model;
 	model.rotate(m_angle, {0.0f, 1.0f, 0.0f});
 
-	QMatrix4x4 view;
-	view.lookAt
-	(
-		{1.0f, 1.0f, 1.0f}, // world space
-		{0.0f, 0.0f, 0.0f}, // world space
-		{0.0f, 0.0f, 1.0f}
-	);
 
 	QMatrix4x4 proj;
 	proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
 
-	const QMatrix4x4 matrix = proj * view * model;
+    const QMatrix4x4 matrix = proj * m_camera.get_view() * model;
 	m_sphere_ub.matrix = matrix;
 
 	m_sphere_shader->bind();
@@ -220,8 +214,8 @@ void OpenGLWindow::paintGL()
 	glVertexAttribPointer(m_plane_shader->attributeLocation("position"), 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	QMatrix4x4 plane_model;
-	plane_model.rotate(90.0f, {1.0f, 0.0f, 0.0f});
-	m_plane_ub.matrix = proj * view * plane_model;
+    plane_model.rotate(90.0f, {1.0f, 0.0f, 0.0f});
+    m_plane_ub.matrix = proj * m_camera.get_view() * plane_model;
 	m_plane_shader->set_uniform_block_data((void*)&m_plane_ub, sizeof(m_plane_ub));
 
 	glActiveTexture(GL_TEXTURE0);

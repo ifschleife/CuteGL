@@ -7,6 +7,7 @@
 #include <chrono>
 #include <memory>
 
+#include "camera.h"
 #include "shape.h"
 
 
@@ -48,6 +49,9 @@ private slots:
 private:
 	void add_sub_div_sphere(const Vec3D& pos, float size);
 	void resizeGL(int width, int height) override;
+
+public:
+    Camera m_camera;
 
 private:
     std::unique_ptr<Framebuffer> m_framebuffer;
