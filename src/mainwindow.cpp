@@ -61,11 +61,19 @@ bool MainWindow::eventFilter(QObject* watched, QEvent* event)
             break;
 
             case Qt::Key_Left:
-                m_glWindow->m_camera.rotate(10.0f);
+                m_glWindow->m_camera.change_yaw(10.0f);
             break;
 
             case Qt::Key_Right:
-                m_glWindow->m_camera.rotate(-10.0f);
+                m_glWindow->m_camera.change_yaw(-10.0f);
+            break;
+
+            case Qt::Key_Up:
+                m_glWindow->m_camera.change_pitch(-5.0f);
+            break;
+
+            case Qt::Key_Down:
+                m_glWindow->m_camera.change_pitch(5.0f);
             break;
 
             default:
