@@ -14,12 +14,12 @@ Camera::Camera(QVector3D&& pos)
 
 QMatrix4x4 Camera::get_view() const
 {
-    QMatrix4x4 view;
-    QVector3D tgt = m_pos;
-    const float x = cos(deg_to_rad(m_yaw));
-    const float y = sin(deg_to_rad(m_yaw));
+    const float x = sin(deg_to_rad(m_pitch)) * cos(deg_to_rad(m_yaw));
+    const float y = sin(deg_to_rad(m_pitch)) * sin(deg_to_rad(m_yaw));
     const float z = cos(deg_to_rad(m_pitch));
-    tgt += {x, y, z};
+    const QVector3D tgt = m_pos + QVector3D{x, y, z};
+
+    QMatrix4x4 view;
     view.lookAt(m_pos, tgt, {0.0f, 0.0f, 1.0f});
     return view;
 }
@@ -27,6 +27,9 @@ QMatrix4x4 Camera::get_view() const
 void Camera::change_pitch(float angle)
 {
     m_pitch += angle;
+    m_pitch = std::abs(m_pitch);
+    m_pitch = std::min(m_pitch, 179.9f);
+    m_pitch = std::max(m_pitch, 0.1f);
 }
 
 void Camera::change_yaw(float angle)
