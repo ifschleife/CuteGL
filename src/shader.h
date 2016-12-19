@@ -10,12 +10,12 @@
 class Shader : public QOpenGLShaderProgram, protected QOpenGLFunctions_4_3_Core
 {
 public:
-	Shader();
+    Shader();
 
-	bool addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString& fileName);
-	void create_uniform_block(void* data, size_t size);
-	void set_uniform_block_data(void* data, size_t size);
+    bool addShaderFromSourceFile(QOpenGLShader::ShaderType type, const QString& fileName);
+    void create_uniform_block(void* data, size_t size);
+    void set_uniform_block_data(void* data, size_t size);
 
 private:
-	GLuint m_uniform_vbo;
+    GLuint m_uniform_vbo;
 };
