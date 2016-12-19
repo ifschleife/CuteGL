@@ -33,6 +33,11 @@ Makefile*
 *.qmlproject.user
 *.qmlproject.user.*
 
+#Vim
+*~
+*.swp
+*.swo
+
 build/*
 bin/*
 
