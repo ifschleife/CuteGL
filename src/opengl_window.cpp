@@ -24,7 +24,7 @@ namespace
 
 
 OpenGLWindow::OpenGLWindow()
-    : m_camera{{1.0f, 2.0f, 0.5f}}
+    : m_camera{{1.0f, 1.0f, 0.5f}}
     , m_framebuffer(std::make_unique<Framebuffer>())
 	, m_frame_timer(std::make_unique<QTimer>())
 	, m_logger(std::make_unique<QOpenGLDebugLogger>())
@@ -167,12 +167,12 @@ void OpenGLWindow::paintGL()
         m_angle = std::fmod(ANIMATION_SPEED * time, 360.0f);
 	}
 
-	QMatrix4x4 model;
+    QMatrix4x4 model;
+    model.translate(0.0f, 10.0f, 0.0f);
 	model.rotate(m_angle, {0.0f, 1.0f, 0.0f});
 
-
-	QMatrix4x4 proj;
-	proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
+    QMatrix4x4 proj;
+    proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
 
     const QMatrix4x4 matrix = proj * m_camera.get_view() * model;
 	m_sphere_ub.matrix = matrix;
@@ -307,6 +307,7 @@ void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
 
 void OpenGLWindow::add_sub_div_sphere(const Vec3D& pos, float size)
 {
+    Q_UNUSED(pos);
     const float t = (1.0f + std::sqrt(5.0f)) / 4.0f;
 
 	m_sphere.add_normalized_vertex({-0.5f,  t, 0.0f});
