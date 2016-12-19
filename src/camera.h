@@ -5,7 +5,7 @@
 
 class Camera
 {
-public:
+  public:
     explicit Camera(QVector3D&& pos);
 
     void change_pitch(float angle);
@@ -18,8 +18,8 @@ public:
     void move_left(float dist);
     void move_right(float dist);
 
-private:
-    float     m_pitch;
+  private:
+    float m_pitch;
     QVector3D m_pos;
-    float     m_yaw;
+    float m_yaw;
 };

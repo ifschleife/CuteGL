@@ -6,9 +6,9 @@
 
 
 Camera::Camera(QVector3D&& pos)
-    : m_pitch{90.0f}
-    , m_pos(pos)
-    , m_yaw(90.0f)
+  : m_pitch{90.0f}
+  , m_pos(pos)
+  , m_yaw(90.0f)
 {
 }
 
