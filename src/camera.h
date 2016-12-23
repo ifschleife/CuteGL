@@ -11,7 +11,7 @@ public:
     void change_pitch(float angle);
     void change_yaw(float angle);
 
-    QMatrix4x4 get_view() const;
+    const QMatrix4x4& get_view() const;
 
     void move_backward(float dist);
     void move_forward(float dist);
@@ -19,7 +19,13 @@ public:
     void move_right(float dist);
 
 private:
+    void calculate_view_dir();
+    void calculate_view_matrix();
+
+private:
     float m_pitch;
     QVector3D m_pos;
+    QVector3D m_view_dir;
+    QMatrix4x4 m_view_matrix;
     float m_yaw;
 };
