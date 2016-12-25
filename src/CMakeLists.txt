@@ -1,30 +1,4 @@
-set(SOURCES
-    camera.cpp
-    framebuffer.cpp
-    main.cpp
-    mainwindow.cpp
-    opengl_window.cpp
-    shader.cpp
-    shape.cpp
-    util.cpp
-    )
-
-set(HEADERS
-    camera.h
-    framebuffer.h
-    mainwindow.h
-    opengl_window.h
-    shader.h
-    shape.h
-    util.h
-    )
-
-set(UI_FILES
-    mainwindow.ui
-    )
-
-set(QRC_FILES
-    )
+file(GLOB SOURCES "*.h" "*.cpp" "*.qrc" "*.ui")
 
 file(GLOB_RECURSE RES_FILES *.glsl) # shader code
 
@@ -32,8 +6,7 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-add_executable(${PROJECT_NAME} WIN32
-    ${SOURCES} ${HEADERS} ${UI_FILES} ${QRC_FILES} ${RES_FILES})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${RES_FILES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
 
