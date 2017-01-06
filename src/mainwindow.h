@@ -8,6 +8,7 @@ namespace Ui
 {
     class MainWindow;
 }
+class InputManager;
 class OpenGLWindow;
 
 
@@ -20,11 +21,14 @@ public:
     ~MainWindow() override;
 
 private:
-    bool eventFilter(QObject* watched, QEvent* event) override;
-
     void showFrameTime(float time_in_ms);
+
+private slots:
+    void main_loop();
 
 private:
     std::unique_ptr<OpenGLWindow> m_glWindow;
+    std::unique_ptr<InputManager> m_input_manager;
+    std::unique_ptr<QTime> m_main_loop_time;
     std::unique_ptr<Ui::MainWindow> m_ui;
 };
