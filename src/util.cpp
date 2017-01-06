@@ -3,6 +3,8 @@
 #include <QImage>
 
 
+float deg_to_rad(float degrees) { return degrees * 4.0f * atanf(1.0f) / 180.0f; }
+
 auto generate_checker_board_texture(int width, int height) -> std::unique_ptr<QImage>
 {
     auto img = std::make_unique<QImage>(width, height, QImage::Format_ARGB32);

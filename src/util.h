@@ -20,6 +20,6 @@
 #endif
 
 
-constexpr float deg_to_rad(float degrees) { return degrees * 4.0f * atanf(1.0f) / 180.0f; }
+float deg_to_rad(float degrees);
 
 auto generate_checker_board_texture(int width, int height) -> std::unique_ptr<class QImage>;
