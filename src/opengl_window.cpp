@@ -52,8 +52,8 @@ void OpenGLWindow::initializeGL()
 
     // shaders for shape
     m_sphere_shader = std::make_unique<Shader>();
-    m_sphere_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/normal_vs.glsl");
-    m_sphere_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/normal_fs.glsl");
+    m_sphere_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../src/shaders/normal_vs.glsl");
+    m_sphere_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../src/shaders/normal_fs.glsl");
     if (!m_sphere_shader->link())
     {
         qDebug() << m_sphere_shader->log();
@@ -65,8 +65,8 @@ void OpenGLWindow::initializeGL()
 
     // shaders for framebuffer quad
     m_post_process_shader = std::make_unique<Shader>();
-    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/post_process_vs.glsl");
-    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/post_process_fs.glsl");
+    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../src/shaders/post_process_vs.glsl");
+    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../src/shaders/post_process_fs.glsl");
     if (!m_post_process_shader->link())
     {
         qDebug() << m_post_process_shader->log();
@@ -104,8 +104,8 @@ void OpenGLWindow::initializeGL()
 
     m_plane_shader = std::make_unique<Shader>();
 
-    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../src/shaders/plane_vs.glsl");
-    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../src/shaders/texture_fs.glsl");
+    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../src/shaders/plane_vs.glsl");
+    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../src/shaders/texture_fs.glsl");
     if (!m_plane_shader->link())
     {
         qDebug() << m_plane_shader->log();
