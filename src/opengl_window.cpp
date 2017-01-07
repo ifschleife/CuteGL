@@ -261,26 +261,13 @@ void OpenGLWindow::paintGL()
     glBindTexture(GL_TEXTURE_2D, 0);
 
     ++m_frame_counter;
+
+    update();
 }
 
 void OpenGLWindow::setAnimating(bool animating)
 {
     m_animating = animating;
-    if (animating)
-    {
-        // Animate continuously, throttled by the blocking swapBuffers() call the
-        // QOpenGLWindow internally executes after each paint. Once that is done
-        // (frameSwapped signal is emitted), we schedule a new update. This
-        // obviously assumes that the swap interval (see
-        // QSurfaceFormat::setSwapInterval()) is non-zero.
-        connect(this, &OpenGLWindow::frameSwapped, this, QOverload<>::of(&OpenGLWindow::update));
-
-        update();
-    }
-    else
-    {
-        disconnect(this, &OpenGLWindow::frameSwapped, this, QOverload<>::of(&OpenGLWindow::update));
-    }
 }
 
 void OpenGLWindow::showWireFrame(bool status)

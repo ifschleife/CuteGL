@@ -86,7 +86,5 @@ void MainWindow::main_loop()
     m_glWindow->m_camera.change_yaw(yaw_angle);
     m_glWindow->m_camera.change_pitch(pitch_angle);
 
-    m_glWindow->update();
-
     m_main_loop_time->start();
 }
