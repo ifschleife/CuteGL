@@ -37,6 +37,8 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
     connect(m_glWindow.get(), &OpenGLWindow::frameTime, this, &MainWindow::showFrameTime);
 
     installEventFilter(m_input_manager.get());
+    // the OpenGLWindow is not really part of the hierarchy so we need to make sure it does not swallow events
+    m_glWindow->installEventFilter(m_input_manager.get());
 
     setFocus();
 
