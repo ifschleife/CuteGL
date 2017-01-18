@@ -59,7 +59,7 @@ void OpenGLWindow::initializeGL()
         qDebug() << m_sphere_shader->log();
     }
 
-    m_sphere_shader->create_uniform_block((void*)&m_sphere_ub, sizeof(m_sphere_ub));
+    m_sphere_shader->create_uniform_block((void*)&m_sphere_mvp, sizeof(m_sphere_mvp));
 
     m_sphere_shader->attributeLocation("position");
 
@@ -111,7 +111,7 @@ void OpenGLWindow::initializeGL()
         qDebug() << m_plane_shader->log();
     }
 
-    m_plane_shader->create_uniform_block((void*)&m_plane_ub, sizeof(m_plane_ub));
+    m_plane_shader->create_uniform_block((void*)&m_plane_mvp, sizeof(m_plane_mvp));
 
     m_plane.positions.push_back({-8.0f, 0.0f, -8.0f});
     m_plane.positions.push_back({8.0f, 0.0f, -8.0f});
@@ -172,11 +172,10 @@ void OpenGLWindow::paintGL()
     QMatrix4x4 proj;
     proj.perspective(60.0f, width() / (float)height(), 0.1f, 100.0f);
 
-    const QMatrix4x4 matrix = proj * m_camera.get_view() * model;
-    m_sphere_ub.matrix = matrix;
+    m_sphere_mvp = proj * m_camera.get_view() * model;
 
     m_sphere_shader->bind();
-    m_sphere_shader->set_uniform_block_data((void*)&m_sphere_ub, sizeof(m_sphere_ub));
+    m_sphere_shader->set_uniform_block_data((void*)&m_sphere_mvp, sizeof(m_sphere_mvp));
 
     glEnableVertexAttribArray(0); // enable attribute slot for shader input variable
     glBindBuffer(GL_ARRAY_BUFFER, m_sphere.vbos.pos);
@@ -214,8 +213,8 @@ void OpenGLWindow::paintGL()
 
     QMatrix4x4 plane_model;
     plane_model.rotate(90.0f, {1.0f, 0.0f, 0.0f});
-    m_plane_ub.matrix = proj * m_camera.get_view() * plane_model;
-    m_plane_shader->set_uniform_block_data((void*)&m_plane_ub, sizeof(m_plane_ub));
+    m_plane_mvp = proj * m_camera.get_view() * plane_model;
+    m_plane_shader->set_uniform_block_data((void*)&m_plane_mvp, sizeof(m_plane_mvp));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);

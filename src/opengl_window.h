@@ -18,11 +18,6 @@ class QOpenGLShaderProgram;
 class QTimer;
 class Shader;
 
-struct UniformBlock
-{
-    QMatrix4x4 matrix;
-};
-
 
 class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_3_Core
 {
@@ -72,9 +67,9 @@ private:
 
     Shape m_sphere;
     std::unique_ptr<Shader> m_sphere_shader;
-    UniformBlock m_sphere_ub;
+    QMatrix4x4 m_sphere_mvp;
 
     Shape m_plane;
     std::unique_ptr<Shader> m_plane_shader;
-    UniformBlock m_plane_ub;
+    QMatrix4x4 m_plane_mvp;
 };
