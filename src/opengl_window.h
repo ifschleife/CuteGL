@@ -12,6 +12,7 @@
 
 
 class Framebuffer;
+class RenderObject;
 class QOpenGLDebugLogger;
 class QOpenGLDebugMessage;
 class QOpenGLShaderProgram;
@@ -72,4 +73,6 @@ private:
     Shape m_plane;
     std::unique_ptr<Shader> m_plane_shader;
     QMatrix4x4 m_plane_mvp;
+
+    std::unique_ptr<RenderObject> m_plane_object;
 };

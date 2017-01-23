@@ -102,50 +102,69 @@ void OpenGLWindow::initializeGL()
 
     /// create plane
 
-    m_plane_shader = std::make_unique<Shader>();
-
-    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../src/shaders/plane_vs.glsl");
-    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../src/shaders/texture_fs.glsl");
-    if (!m_plane_shader->link())
     {
-        qDebug() << m_plane_shader->log();
+        m_plane_object = std::make_unique<RenderObject>();
+
+        m_plane_object->rotate(90.0f);
+
+        m_plane_object->addVertex({-8.0f, 0.0f, -8.0f});
+        m_plane_object->addVertex({8.0f, 0.0f, -8.0f});
+        m_plane_object->addVertex({8.0f, 0.0f, 8.0f});
+        m_plane_object->addVertex({-8.0f, 0.0f, 8.0f});
+
+        m_plane_object->addFace({0, 1, 2});
+        m_plane_object->addFace({2, 3, 0});
+
+        m_plane_object->setVertexShader("../src/shaders/plane_vs.glsl");
+        m_plane_object->setFragmentShader("../src/shaders/texture_fs.glsl");
+
+        m_plane_object->initGL();
     }
 
-    m_plane_shader->create_uniform_block((void*)&m_plane_mvp, sizeof(m_plane_mvp));
+//    m_plane_shader = std::make_unique<Shader>();
 
-    m_plane.positions.push_back({-8.0f, 0.0f, -8.0f});
-    m_plane.positions.push_back({8.0f, 0.0f, -8.0f});
-    m_plane.positions.push_back({8.0f, 0.0f, 8.0f});
-    m_plane.positions.push_back({-8.0f, 0.0f, 8.0f});
+//    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../src/shaders/plane_vs.glsl");
+//    m_plane_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../src/shaders/texture_fs.glsl");
+//    if (!m_plane_shader->link())
+//    {
+//        qDebug() << m_plane_shader->log();
+//    }
 
-    m_plane.indices.push_back({0, 1, 2});
-    m_plane.indices.push_back({2, 3, 0});
+//    m_plane_shader->create_uniform_block((void*)&m_plane_mvp, sizeof(m_plane_mvp));
 
-    // vbo for plane
-    glGenBuffers(1, &m_plane.vbos.pos);
-    glBindBuffer(GL_ARRAY_BUFFER, m_plane.vbos.pos);
-    glBufferData(GL_ARRAY_BUFFER, m_plane.positions.size() * sizeof(m_plane.positions[0]), m_plane.positions.data(),
-                 GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    m_plane.positions.push_back({-8.0f, 0.0f, -8.0f});
+//    m_plane.positions.push_back({8.0f, 0.0f, -8.0f});
+//    m_plane.positions.push_back({8.0f, 0.0f, 8.0f});
+//    m_plane.positions.push_back({-8.0f, 0.0f, 8.0f});
 
-    glGenBuffers(1, &m_plane.vbos.index);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.vbos.index);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_plane.indices.size() * sizeof(m_plane.indices[0]), m_plane.indices.data(),
-                 GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//    m_plane.indices.push_back({0, 1, 2});
+//    m_plane.indices.push_back({2, 3, 0});
 
-    glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//    // vbo for plane
+//    glGenBuffers(1, &m_plane.vbos.pos);
+//    glBindBuffer(GL_ARRAY_BUFFER, m_plane.vbos.pos);
+//    glBufferData(GL_ARRAY_BUFFER, m_plane.positions.size() * sizeof(m_plane.positions[0]), m_plane.positions.data(),
+//                 GL_STATIC_DRAW);
+//    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    const int w = 16;
-    const int h = 16;
-    const auto tex = generate_checker_board_texture(w, h);
+//    glGenBuffers(1, &m_plane.vbos.index);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.vbos.index);
+//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_plane.indices.size() * sizeof(m_plane.indices[0]), m_plane.indices.data(),
+//                 GL_STATIC_DRAW);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glGenTextures(1, &m_plane.vbos.texture);
-    glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex->rgbSwapped().bits());
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
+//    glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
+//    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+//    const int w = 16;
+//    const int h = 16;
+//    const auto tex = generate_checker_board_texture(w, h);
+
+//    glGenTextures(1, &m_plane.vbos.texture);
+//    glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex->rgbSwapped().bits());
+//    glGenerateMipmap(GL_TEXTURE_2D);
+//    glBindTexture(GL_TEXTURE_2D, 0);
 
     m_frame_timer->start();
 }
@@ -202,37 +221,43 @@ void OpenGLWindow::paintGL()
 
     /// plane rendering
 
-    m_plane_shader->bind();
+    {
+        const QMatrix4x4 pv  =proj * m_camera.get_view();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        m_plane_object->render(pv);
+    }
 
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_plane.vbos.pos);
-    glVertexAttribPointer(m_plane_shader->attributeLocation("position"), 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+//    m_plane_shader->bind();
 
-    QMatrix4x4 plane_model;
-    plane_model.rotate(90.0f, {1.0f, 0.0f, 0.0f});
-    m_plane_mvp = proj * m_camera.get_view() * plane_model;
-    m_plane_shader->set_uniform_block_data((void*)&m_plane_mvp, sizeof(m_plane_mvp));
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//    glEnableVertexAttribArray(0);
+//    glBindBuffer(GL_ARRAY_BUFFER, m_plane.vbos.pos);
+//    glVertexAttribPointer(m_plane_shader->attributeLocation("position"), 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//    QMatrix4x4 plane_model;
+//    plane_model.rotate(90.0f, {1.0f, 0.0f, 0.0f});
+//    m_plane_mvp = proj * m_camera.get_view() * plane_model;
+//    m_plane_shader->set_uniform_block_data((void*)&m_plane_mvp, sizeof(m_plane_mvp));
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.vbos.index);
-    glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_plane.indices.size(), GL_UNSIGNED_INT, nullptr);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, m_plane.vbos.texture);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    m_plane_shader->release();
-    glDisableVertexAttribArray(1);
-    glDisable(GL_BLEND);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_plane.vbos.index);
+//    glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_plane.indices.size(), GL_UNSIGNED_INT, nullptr);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+//    m_plane_shader->release();
+//    glDisableVertexAttribArray(1);
+//    glDisable(GL_BLEND);
 
 
     // switch back to back buffer
@@ -297,7 +322,7 @@ void OpenGLWindow::updateFrameTime()
 
 void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
 {
-    qDebug() << msg;
+//    qDebug() << msg;
     if (msg.severity() == QOpenGLDebugMessage::HighSeverity)
     {
         throw std::runtime_error(msg.message().toStdString());
