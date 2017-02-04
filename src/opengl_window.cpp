@@ -118,6 +118,8 @@ void OpenGLWindow::initializeGL()
         m_plane_object->setVertexShader("../src/shaders/plane_vs.glsl");
         m_plane_object->setFragmentShader("../src/shaders/texture_fs.glsl");
 
+        m_plane_object->setTexture(generate_checker_board_texture(16, 16));
+
         m_plane_object->initGL();
     }
 
@@ -222,7 +224,7 @@ void OpenGLWindow::paintGL()
     /// plane rendering
 
     {
-        const QMatrix4x4 pv  =proj * m_camera.get_view();
+        const QMatrix4x4 pv = proj * m_camera.get_view();
 
         m_plane_object->render(pv);
     }

@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <vector>
 
+#include <QDebug>
 #include <QMatrix4x4>
 #include <QOpenGLWindow> // for GLuint
 
@@ -49,7 +50,6 @@ struct Shape
 };
 
 using Mesh = Shape;
-using Material = Shader;
 
 class RenderObject : public QOpenGLFunctions_4_3_Core
 {
@@ -87,25 +87,12 @@ public:
                      GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-        // texture stuff
-
-        glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        const int w = 16;
-        const int h = 16;
-        const auto tex = generate_checker_board_texture(w, h);
-
-        glGenTextures(1, &m_mesh.vbos.texture);
-        glBindTexture(GL_TEXTURE_2D, m_mesh.vbos.texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex->rgbSwapped().bits());
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        // super hacky...find way to expose this somehow
         m_material.create_uniform_block((void*)&m_model_matrix, sizeof(m_model_matrix));
 
-        m_material.link();
+        if (!m_material.link())
+        {
+            qDebug() << m_material.log();
+        }
     }
 
     void rotate(float angle)
@@ -121,6 +108,19 @@ public:
     void setVertexShader(const QString&& filename)
     {
         m_material.addShaderFromSourceFile(QOpenGLShader::Vertex, filename);
+    }
+
+    void setTexture(const std::unique_ptr<QImage>& texture)
+    {
+        glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glGenTextures(1, &m_mesh.vbos.texture);
+        glBindTexture(GL_TEXTURE_2D, m_mesh.vbos.texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     texture->width(), texture->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->rgbSwapped().bits());
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     void render(const QMatrix4x4& pv)
@@ -159,6 +159,6 @@ public:
 
 private:
     Mesh m_mesh;
-    Material m_material;
+    Shader m_material;
     QMatrix4x4 m_model_matrix;
 };
