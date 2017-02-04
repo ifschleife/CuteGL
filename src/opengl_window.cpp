@@ -186,7 +186,7 @@ void OpenGLWindow::showWireFrame(bool status)
 
 void OpenGLWindow::updateFrameTime()
 {
-    emit frameTime(m_frame_counter / 3.60f);
+    emit frameTime(1000.0f / m_frame_counter);
     m_frame_counter = 0;
 }
 
