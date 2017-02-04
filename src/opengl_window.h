@@ -43,7 +43,6 @@ private slots:
     void handle_log_message(const QOpenGLDebugMessage& msg);
 
 private:
-    void add_sub_div_sphere(const Vec3D& pos, float size);
     void resizeGL(int width, int height) override;
 
 public:
@@ -58,21 +57,9 @@ private:
     std::unique_ptr<QOpenGLDebugLogger> m_logger;
 
     std::unique_ptr<Shader> m_post_process_shader;
-
     GLuint m_vbo_quad;
 
     bool m_animating{false};
-    float m_angle{0.0f};
 
-    bool m_show_wire_frame{false};
-
-    Shape m_sphere;
-    std::unique_ptr<Shader> m_sphere_shader;
-    QMatrix4x4 m_sphere_mvp;
-
-    Shape m_plane;
-    std::unique_ptr<Shader> m_plane_shader;
-    QMatrix4x4 m_plane_mvp;
-
-    std::unique_ptr<RenderObject> m_plane_object;
+    std::vector<std::unique_ptr<RenderObject>> m_objects;
 };

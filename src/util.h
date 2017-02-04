@@ -20,6 +20,8 @@
 #endif
 
 
+class Shape createSubDivSphere(float size, int level);
+
 float deg_to_rad(float degrees);
 
 auto generate_checker_board_texture(int width, int height) -> std::unique_ptr<class QImage>;
