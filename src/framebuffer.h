@@ -2,9 +2,9 @@
 
 #include <cinttypes>
 
-#include <QOpenGLFunctions_4_3_Core>
+#include <QOpenGLFunctions_4_5_Core>
 
-class Framebuffer : protected QOpenGLFunctions_4_3_Core
+class Framebuffer : protected QOpenGLFunctions_4_5_Core
 {
 public:
     void initialize(uint_fast16_t width, uint_fast16_t height);

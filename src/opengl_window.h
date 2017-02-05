@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMatrix4x4>
-#include <QOpenGLFunctions_4_3_Core>
+#include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLWindow>
 
 #include <chrono>
@@ -20,7 +20,7 @@ class QTimer;
 class Shader;
 
 
-class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_3_Core
+class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
 {
     Q_OBJECT
 

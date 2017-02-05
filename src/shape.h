@@ -6,6 +6,7 @@
 
 #include <QDebug>
 #include <QMatrix4x4>
+#include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLWindow> // for GLuint
 
 #include "shader.h"
@@ -51,7 +52,7 @@ struct Shape
 
 using Mesh = Shape;
 
-class RenderObject : public QOpenGLFunctions_4_3_Core
+class RenderObject : public QOpenGLFunctions_4_5_Core
 {
 public:
     RenderObject()
