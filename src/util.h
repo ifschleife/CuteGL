@@ -20,7 +20,7 @@
 #endif
 
 
-class Shape createSubDivSphere(float size, int level);
+struct Shape createSubDivSphere(float size, int level);
 
 float deg_to_rad(float degrees);
 
