@@ -59,7 +59,7 @@ Shape createSubDivSphere(float size, int level)
 
 auto generate_checker_board_texture(int width, int height) -> std::unique_ptr<QImage>
 {
-    auto img = std::make_unique<QImage>(width, height, QImage::Format_ARGB32);
+    auto img = std::make_unique<QImage>(width, height, QImage::Format_RGB32);
 
     bool white = true;
     for (int y = 0; y < height; ++y)

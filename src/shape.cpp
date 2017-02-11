@@ -163,15 +163,18 @@ void RenderObject::setVertexShader(const QString&& filename)
 
 void RenderObject::setTexture(const std::unique_ptr<QImage>&& texture)
 {
-    glPixelStorei(GL_PACK_ALIGNMENT, 1); // for byte textures
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_mesh.vbos.texture);
 
-    glGenTextures(1, &m_mesh.vbos.texture);
-    glBindTexture(GL_TEXTURE_2D, m_mesh.vbos.texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                 texture->width(), texture->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->rgbSwapped().bits());
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glTextureStorage2D(m_mesh.vbos.texture, 4, GL_RGBA8, texture->width(), texture->height());
+    glTextureSubImage2D(m_mesh.vbos.texture, 0, 0, 0, texture->width(), texture->height(),
+                        GL_RGBA, GL_UNSIGNED_BYTE, texture->rgbSwapped().bits());
+    glGenerateTextureMipmap(m_mesh.vbos.texture);
+
+    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
+    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void RenderObject::setCullFaceMode(bool mode)
@@ -201,13 +204,7 @@ void RenderObject::render(const QMatrix4x4& pv)
 
     if (m_mesh.vbos.texture)
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_mesh.vbos.texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glBindTextureUnit(0, m_mesh.vbos.texture);
     }
 
     if (m_cull_faces)

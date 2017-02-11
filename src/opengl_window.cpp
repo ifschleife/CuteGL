@@ -105,7 +105,7 @@ void OpenGLWindow::initializeGL()
         plane->setVertexShader("../src/shaders/plane_vs.glsl");
         plane->setFragmentShader("../src/shaders/texture_fs.glsl");
 
-        plane->setTexture(generate_checker_board_texture(16, 16));
+        plane->setTexture(std::make_unique<QImage>("../assets/textures/checker_board_128x128.png"));
 
         m_objects.push_back(std::move(plane));
     }
