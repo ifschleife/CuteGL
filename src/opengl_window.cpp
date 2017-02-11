@@ -12,6 +12,7 @@
 
 #include "framebuffer.h"
 #include "shader.h"
+#include "texture.h"
 #include "util.h"
 
 
@@ -105,7 +106,14 @@ void OpenGLWindow::initializeGL()
         plane->setVertexShader("../src/shaders/plane_vs.glsl");
         plane->setFragmentShader("../src/shaders/texture_fs.glsl");
 
-        plane->setTexture(std::make_unique<QImage>("../assets/textures/checker_board_128x128.png"));
+        auto tex = std::make_unique<Texture>();
+        if (tex->loadFromFile("../assets/textures/checker_board_128x128.png"))
+        {
+            tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
+            tex->setAnisotropicFilteringLevel(16);
+            tex->setWrappingST(GL_REPEAT, GL_REPEAT);
+            plane->setTexture(std::move(tex));
+        }
 
         m_objects.push_back(std::move(plane));
     }

@@ -1,5 +1,7 @@
 #include "shape.h"
 
+#include "texture.h"
+
 #include <cassert>
 #include <math.h>
 
@@ -96,6 +98,7 @@ void Shape::sub_divide(uint_fast8_t level)
 
 
 RenderObject::RenderObject()
+    : m_texture{nullptr}
 {
     initializeOpenGLFunctions();
 }
@@ -161,20 +164,9 @@ void RenderObject::setVertexShader(const QString&& filename)
     m_shader.addShaderFromSourceFile(QOpenGLShader::Vertex, filename);
 }
 
-void RenderObject::setTexture(const std::unique_ptr<QImage>&& texture)
+void RenderObject::setTexture(std::unique_ptr<Texture> texture)
 {
-    glCreateTextures(GL_TEXTURE_2D, 1, &m_mesh.vbos.texture);
-
-    glTextureStorage2D(m_mesh.vbos.texture, 4, GL_RGBA8, texture->width(), texture->height());
-    glTextureSubImage2D(m_mesh.vbos.texture, 0, 0, 0, texture->width(), texture->height(),
-                        GL_RGBA, GL_UNSIGNED_BYTE, texture->rgbSwapped().bits());
-    glGenerateTextureMipmap(m_mesh.vbos.texture);
-
-    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16);
-    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(m_mesh.vbos.texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    m_texture = std::move(texture);
 }
 
 void RenderObject::setCullFaceMode(bool mode)
@@ -202,9 +194,9 @@ void RenderObject::render(const QMatrix4x4& pv)
 
     m_shader.set_uniform_block_data((void*)&mvp, sizeof(mvp));
 
-    if (m_mesh.vbos.texture)
+    if (m_texture)
     {
-        glBindTextureUnit(0, m_mesh.vbos.texture);
+        m_texture->bind();
     }
 
     if (m_cull_faces)

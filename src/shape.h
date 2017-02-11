@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cinttypes>
+#include <memory>
 #include <vector>
 
 #include <QDebug>
@@ -17,7 +18,6 @@ struct GLShape
 {
     GLuint index{0};
     GLuint pos{0};
-    GLuint texture{0};
 };
 
 struct Vec3D
@@ -51,6 +51,7 @@ struct Shape
 };
 
 using Mesh = Shape;
+class Texture;
 
 class RenderObject : public QOpenGLFunctions_4_5_Core
 {
@@ -74,13 +75,14 @@ public:
 
     void setCullFaceMode(bool mode);
     void setMesh(const Mesh& mesh);
-    void setTexture(const std::unique_ptr<QImage>&& texture);
+    void setTexture(std::unique_ptr<Texture> texture);
     void setWireframeMode(bool mode);
 
 private:
     Mesh m_mesh;
     Shader m_shader;
     QMatrix4x4 m_model_matrix;
+    std::unique_ptr<Texture> m_texture;
 
     bool m_show_wireframe{false};
     bool m_cull_faces{false};
