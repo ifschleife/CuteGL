@@ -168,6 +168,8 @@ void OpenGLWindow::paintGL()
     glBindTexture(GL_TEXTURE_2D, 0);
 
     ++m_frame_counter;
+
+    update();
 }
 
 void OpenGLWindow::setAnimating(bool animating)
