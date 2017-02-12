@@ -95,13 +95,16 @@ void OpenGLWindow::initializeGL()
 
         plane->rotate(90.0f);
 
-        plane->addVertex({-8.0f, 0.0f, -8.0f});
-        plane->addVertex({8.0f, 0.0f, -8.0f});
-        plane->addVertex({8.0f, 0.0f, 8.0f});
-        plane->addVertex({-8.0f, 0.0f, 8.0f});
+        Mesh mesh;
+        mesh.addVertex({-8.0f, 0.0f, -8.0f});
+        mesh.addVertex({8.0f, 0.0f, -8.0f});
+        mesh.addVertex({8.0f, 0.0f, 8.0f});
+        mesh.addVertex({-8.0f, 0.0f, 8.0f});
 
-        plane->addFace({0, 1, 2});
-        plane->addFace({2, 3, 0});
+        mesh.addFace({0, 1, 2});
+        mesh.addFace({2, 3, 0});
+
+        plane->setMesh(mesh);
 
         plane->setVertexShader("../src/shaders/plane_vs.glsl");
         plane->setFragmentShader("../src/shaders/texture_fs.glsl");

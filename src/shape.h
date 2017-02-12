@@ -14,12 +14,6 @@
 #include "util.h"
 
 
-struct GLShape
-{
-    GLuint index{0};
-    GLuint pos{0};
-};
-
 struct Vec3D
 {
     float x;
@@ -40,11 +34,13 @@ struct Vec3D
 struct Shape
 {
     std::vector<Vec3D> positions;                 ///< vbo vertex positions
-    std::vector<std::array<float, 3>> normals;    ///< vertex normals
     std::vector<std::array<uint32_t, 3>> indices; ///< vbo indices
 
-    GLShape vbos;
+    GLuint m_vertex_id;  ///< gl id for vbo vertices
+    GLuint m_index_id;  ///< gl id for vbo indices
 
+    void addFace(const std::array<uint32_t, 3>&& indices);
+    void addVertex(const Vec3D&& vertex);
     uint32_t add_normalized_vertex(const Vec3D&& vtx);
     void scale(float factor);
     void sub_divide(uint_fast8_t level);
@@ -57,9 +53,6 @@ class RenderObject : public QOpenGLFunctions_4_5_Core
 {
 public:
     RenderObject();
-
-    void addFace(const std::array<uint32_t, 3>&& indices);
-    void addVertex(const Vec3D&& vertex);
 
     void initGL();
     void animate();

@@ -51,6 +51,15 @@ Vec3D& Vec3D::operator*(float m)
     return *this *= m;
 }
 
+void Shape::addFace(const std::array<uint32_t, 3>&& indices)
+{
+    this->indices.emplace_back(indices);
+}
+
+void Shape::addVertex(const Vec3D&& vertex)
+{
+    positions.emplace_back(vertex);
+}
 
 uint32_t Shape::add_normalized_vertex(const Vec3D&& vtx)
 {
@@ -103,16 +112,6 @@ RenderObject::RenderObject()
     initializeOpenGLFunctions();
 }
 
-void RenderObject::addFace(const std::array<uint32_t, 3>&& indices)
-{
-    m_mesh.indices.emplace_back(indices);
-}
-
-void RenderObject::addVertex(const Vec3D&& vertex)
-{
-    m_mesh.positions.emplace_back(vertex);
-}
-
 void RenderObject::setMesh(const Mesh& mesh)
 {
     m_mesh = mesh;
@@ -122,16 +121,16 @@ void RenderObject::initGL()
 {
     // vbo for vertex positions
 
-    glGenBuffers(1, &m_mesh.vbos.pos);
-    glBindBuffer(GL_ARRAY_BUFFER, m_mesh.vbos.pos);
+    glGenBuffers(1, &m_mesh.m_vertex_id);
+    glBindBuffer(GL_ARRAY_BUFFER, m_mesh.m_vertex_id);
     glBufferData(GL_ARRAY_BUFFER, m_mesh.positions.size() * sizeof(m_mesh.positions[0]), m_mesh.positions.data(),
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // vbo for vertex indices
 
-    glGenBuffers(1, &m_mesh.vbos.index);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_mesh.vbos.index);
+    glGenBuffers(1, &m_mesh.m_index_id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_mesh.m_index_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_mesh.indices.size() * sizeof(m_mesh.indices[0]), m_mesh.indices.data(),
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -189,7 +188,7 @@ void RenderObject::render(const QMatrix4x4& pv)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_mesh.vbos.pos);
+    glBindBuffer(GL_ARRAY_BUFFER, m_mesh.m_vertex_id);
     glVertexAttribPointer(m_shader.attributeLocation("position"), 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
     m_shader.set_uniform_block_data((void*)&mvp, sizeof(mvp));
@@ -203,7 +202,7 @@ void RenderObject::render(const QMatrix4x4& pv)
         glEnable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, m_show_wireframe ? GL_LINE : GL_FILL);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_mesh.vbos.index);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_mesh.m_index_id);
     glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
