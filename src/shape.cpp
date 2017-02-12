@@ -3,53 +3,7 @@
 #include "texture.h"
 
 #include <cassert>
-#include <math.h>
 
-
-float Vec3D::length() const
-{
-    return std::sqrt(x * x + y * y + z * z);
-}
-
-void Vec3D::normalize()
-{
-    *this = *this / length();
-}
-
-Vec3D operator+(const Vec3D& lhs, const Vec3D& rhs)
-{
-    return {lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z};
-}
-
-Vec3D operator/(const Vec3D& lhs, const Vec3D& rhs)
-{
-    return {lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z};
-}
-
-Vec3D& Vec3D::operator/(float d)
-{
-    assert(d != 0.0f);
-
-    this->x /= d;
-    this->y /= d;
-    this->z /= d;
-
-    return *this;
-}
-
-Vec3D& Vec3D::operator*=(float m)
-{
-    this->x *= m;
-    this->y *= m;
-    this->z *= m;
-
-    return *this;
-}
-
-Vec3D& Vec3D::operator*(float m)
-{
-    return *this *= m;
-}
 
 void Shape::addFace(const std::array<uint32_t, 3>&& indices)
 {

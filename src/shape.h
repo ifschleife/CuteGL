@@ -14,23 +14,6 @@
 #include "util.h"
 
 
-struct Vec3D
-{
-    float x;
-    float y;
-    float z;
-
-    float length() const;
-    void normalize();
-
-    friend Vec3D operator+(const Vec3D& lhs, const Vec3D& rhs);
-    friend Vec3D operator/(const Vec3D& lhs, const Vec3D& rhs);
-    Vec3D& operator/(float d);
-    Vec3D& operator*=(float m);
-    Vec3D& operator*(float m);
-};
-
-
 struct Shape
 {
     std::vector<Vec3D> positions;                 ///< vbo vertex positions

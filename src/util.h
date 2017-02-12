@@ -2,7 +2,6 @@
 
 #include <QtGlobal>
 
-#include <math.h>
 #include <memory>
 
 
@@ -19,6 +18,22 @@
     } while (0)
 #endif
 
+
+struct Vec3D
+{
+    float x;
+    float y;
+    float z;
+
+    float length() const;
+    void normalize();
+
+    friend Vec3D operator+(const Vec3D& lhs, const Vec3D& rhs);
+    friend Vec3D operator/(const Vec3D& lhs, const Vec3D& rhs);
+    Vec3D& operator/(float d);
+    Vec3D& operator*=(float m);
+    Vec3D& operator*(float m);
+};
 
 struct Shape createSubDivSphere(float size, int level);
 
