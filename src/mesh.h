@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cinttypes>
+#include <memory>
 #include <vector>
 
 #include <math.h>
@@ -28,7 +29,7 @@ public:
     void scale(float factor);
     void subDivide(uint_fast8_t level);
 
-    static Mesh createSubDivSphere(float size, int level);
+    static std::unique_ptr<Mesh> createSubDivSphere(float size, int level);
 
 private:
     GLuint m_index_id;                              ///< gl id for vbo indices

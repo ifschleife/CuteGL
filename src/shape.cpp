@@ -6,19 +6,20 @@
 
 
 RenderObject::RenderObject()
-  : m_texture{nullptr}
+    : m_mesh{nullptr}
+    , m_texture{nullptr}
 {
     initializeOpenGLFunctions();
 }
 
-void RenderObject::setMesh(const Mesh& mesh)
+void RenderObject::setMesh(std::unique_ptr<Mesh> mesh)
 {
-    m_mesh = mesh;
+    m_mesh = std::move(mesh);
 }
 
 void RenderObject::initGL()
 {
-    m_mesh.initVBOs();
+    m_mesh->initVBOs();
 
     m_shader.create_uniform_block((void*)&m_model_matrix, sizeof(m_model_matrix));
 
@@ -72,7 +73,7 @@ void RenderObject::render(const QMatrix4x4& pv)
         glEnable(GL_CULL_FACE);
     glPolygonMode(GL_FRONT_AND_BACK, m_show_wireframe ? GL_LINE : GL_FILL);
 
-    m_mesh.bind();
+    m_mesh->bind();
 
     m_shader.bind();
     const int attrib_location = m_shader.attributeLocation("position");
@@ -84,17 +85,17 @@ void RenderObject::render(const QMatrix4x4& pv)
     if (m_texture)
     {
         m_texture->bind();
-        m_mesh.draw();
+        m_mesh->draw();
         m_texture->unbind();
     }
     else
     {
-        m_mesh.draw();
+        m_mesh->draw();
     }
 
     glDisableVertexAttribArray(attrib_location);
     m_shader.unbind();
-    m_mesh.unbind();
+    m_mesh->unbind();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);

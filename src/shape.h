@@ -30,12 +30,12 @@ public:
     void setVertexShader(const QString&& filename);
 
     void setCullFaceMode(bool mode);
-    void setMesh(const Mesh& mesh);
+    void setMesh(std::unique_ptr<Mesh> mesh);
     void setTexture(std::unique_ptr<Texture> texture);
     void setWireframeMode(bool mode);
 
 private:
-    Mesh m_mesh;
+    std::unique_ptr<Mesh> m_mesh;
     Shader m_shader;
     QMatrix4x4 m_model_matrix;
     std::unique_ptr<Texture> m_texture;

@@ -96,52 +96,52 @@ void Mesh::subDivide(uint_fast8_t level)
     }
 }
 
-Mesh Mesh::createSubDivSphere(float size, int level)
+std::unique_ptr<Mesh> Mesh::createSubDivSphere(float size, int level)
 {
-    Mesh sphere;
+    std::unique_ptr<Mesh> sphere = std::make_unique<Mesh>();
     const float t = (1.0f + std::sqrt(5.0f)) / 4.0f;
 
-    sphere.addNormalizedVertex({-0.5f, t, 0.0f});
-    sphere.addNormalizedVertex({0.5f, t, 0.0f});
-    sphere.addNormalizedVertex({-0.5f, -t, 0.0f});
-    sphere.addNormalizedVertex({0.5f, -t, 0.0f});
+    sphere->addNormalizedVertex({-0.5f, t, 0.0f});
+    sphere->addNormalizedVertex({0.5f, t, 0.0f});
+    sphere->addNormalizedVertex({-0.5f, -t, 0.0f});
+    sphere->addNormalizedVertex({0.5f, -t, 0.0f});
 
-    sphere.addNormalizedVertex({0.0f, -0.5f, t});
-    sphere.addNormalizedVertex({0.0f, 0.5f, t});
-    sphere.addNormalizedVertex({0.0f, -0.5f, -t});
-    sphere.addNormalizedVertex({0.0f, 0.5f, -t});
+    sphere->addNormalizedVertex({0.0f, -0.5f, t});
+    sphere->addNormalizedVertex({0.0f, 0.5f, t});
+    sphere->addNormalizedVertex({0.0f, -0.5f, -t});
+    sphere->addNormalizedVertex({0.0f, 0.5f, -t});
 
-    sphere.addNormalizedVertex({t, 0.0f, -0.5f});
-    sphere.addNormalizedVertex({t, 0.0f, 0.5f});
-    sphere.addNormalizedVertex({-t, 0.0f, -0.5f});
-    sphere.addNormalizedVertex({-t, 0.0f, 0.5f});
+    sphere->addNormalizedVertex({t, 0.0f, -0.5f});
+    sphere->addNormalizedVertex({t, 0.0f, 0.5f});
+    sphere->addNormalizedVertex({-t, 0.0f, -0.5f});
+    sphere->addNormalizedVertex({-t, 0.0f, 0.5f});
 
-    sphere.addFace({0, 11, 5});
-    sphere.addFace({0, 5, 1});
-    sphere.addFace({0, 1, 7});
-    sphere.addFace({0, 7, 10});
-    sphere.addFace({0, 10, 11});
+    sphere->addFace({0, 11, 5});
+    sphere->addFace({0, 5, 1});
+    sphere->addFace({0, 1, 7});
+    sphere->addFace({0, 7, 10});
+    sphere->addFace({0, 10, 11});
 
-    sphere.addFace({1, 5, 9});
-    sphere.addFace({5, 11, 4});
-    sphere.addFace({11, 10, 2});
-    sphere.addFace({10, 7, 6});
-    sphere.addFace({7, 1, 8});
+    sphere->addFace({1, 5, 9});
+    sphere->addFace({5, 11, 4});
+    sphere->addFace({11, 10, 2});
+    sphere->addFace({10, 7, 6});
+    sphere->addFace({7, 1, 8});
 
-    sphere.addFace({3, 9, 4});
-    sphere.addFace({3, 4, 2});
-    sphere.addFace({3, 2, 6});
-    sphere.addFace({3, 6, 8});
-    sphere.addFace({3, 8, 9});
+    sphere->addFace({3, 9, 4});
+    sphere->addFace({3, 4, 2});
+    sphere->addFace({3, 2, 6});
+    sphere->addFace({3, 6, 8});
+    sphere->addFace({3, 8, 9});
 
-    sphere.addFace({4, 9, 5});
-    sphere.addFace({2, 4, 11});
-    sphere.addFace({6, 2, 10});
-    sphere.addFace({8, 6, 7});
-    sphere.addFace({9, 8, 1});
+    sphere->addFace({4, 9, 5});
+    sphere->addFace({2, 4, 11});
+    sphere->addFace({6, 2, 10});
+    sphere->addFace({8, 6, 7});
+    sphere->addFace({9, 8, 1});
 
-    sphere.subDivide(level);
-    sphere.scale(size);
+    sphere->subDivide(level);
+    sphere->scale(size);
 
     return sphere;
 }
