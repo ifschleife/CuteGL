@@ -3,9 +3,8 @@
 #include <memory>
 #include <string>
 
+#include <QImage>
 #include <QOpenGLFunctions_4_5_Core>
-
-class QImage;
 
 
 class Texture : protected QOpenGLFunctions_4_5_Core
@@ -16,6 +15,7 @@ public:
     bool loadFromFile(const std::string& filename);
 
     void bind();
+    void unbind();
 
     void setAnisotropicFilteringLevel(int level);
     void setMinMagFilters(GLint min_filter, GLint mag_filter);

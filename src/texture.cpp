@@ -1,7 +1,5 @@
 #include "texture.h"
 
-#include <QImage>
-
 
 Texture::Texture()
     : m_id{0}
@@ -13,6 +11,11 @@ Texture::Texture()
 void Texture::bind()
 {
     glBindTextureUnit(0, m_id);
+}
+
+void Texture::unbind()
+{
+    glBindTextureUnit(0, 0);
 }
 
 bool Texture::loadFromFile(const std::string& filename)

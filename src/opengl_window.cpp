@@ -11,6 +11,7 @@
 #include <stdexcept>
 
 #include "framebuffer.h"
+#include "mesh.h"
 #include "shader.h"
 #include "texture.h"
 #include "util.h"
@@ -81,7 +82,7 @@ void OpenGLWindow::initializeGL()
 
         sphere->setCullFaceMode(true);
 
-        sphere->setMesh(createSubDivSphere(0.5f, 4));
+        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 4));
 
         sphere->setVertexShader("../src/shaders/normal_vs.glsl");
         sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
