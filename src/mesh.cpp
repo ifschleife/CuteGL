@@ -7,6 +7,7 @@
 
 Mesh::Mesh()
     : m_index_id{0}
+    , m_normal_id{0}
     , m_vertex_id{0}
 {
     initializeOpenGLFunctions();
@@ -23,11 +24,21 @@ void Mesh::initVBOs()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(m_indices[0]), m_indices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glGenBuffers(1, &m_normal_id);
+    glBindBuffer(GL_ARRAY_BUFFER, m_normal_id);
+    glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(m_normals[0]), m_normals.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Mesh::bind()
 {
     glBindBuffer(GL_ARRAY_BUFFER, m_vertex_id);
+}
+
+void Mesh::bind_normals()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, m_normal_id);
 }
 
 void Mesh::unbind()
@@ -43,6 +54,23 @@ void Mesh::addFace(const std::array<uint32_t, 3>&& indices)
 void Mesh::addVertex(const Vec3D&& vertex)
 {
     m_vertices.emplace_back(vertex);
+}
+
+int Mesh::addVertex(const Vec3D&& vertex, const Vec3D&& normal)
+{
+    m_vertices.emplace_back(vertex);
+    m_normals.emplace_back(normal);
+    return m_vertices.size();
+}
+
+int Mesh::getVertexIndex(const Vec3D& vertex) const
+{
+    for (size_t i=0; i<m_vertices.size(); ++i)
+    {
+        if (m_vertices[i] == vertex)
+            return i;
+    }
+    return -1;
 }
 
 uint32_t Mesh::addNormalizedVertex(const Vec3D&& vertex)

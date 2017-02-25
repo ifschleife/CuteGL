@@ -12,6 +12,7 @@
 
 #include "framebuffer.h"
 #include "mesh.h"
+#include "obj_parser.h"
 #include "shader.h"
 #include "texture.h"
 #include "util.h"
@@ -75,51 +76,74 @@ void OpenGLWindow::initializeGL()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     {
-        /// create sphere
-        auto sphere = std::make_unique<RenderObject>();
-        sphere->translate(0.0f, 10.0f, 0.0f);
-        sphere->setAnimRotation(5.0f);
+        auto parser = ObjParser();
+        auto mesh = parser.parse("../teapot.obj");
 
-        sphere->setCullFaceMode(true);
+        auto pot = std::make_unique<RenderObject>();
+        pot->translate(0.0f, 4.0f, 1.0f);
+        pot->setMesh(std::move(mesh));
 
-        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 4));
+        pot->setVertexShader("../src/shaders/normal_test_vs.glsl");
+        pot->setFragmentShader("../src/shaders/normal_fs.glsl");
 
-        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
-        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
-
-        m_objects.push_back(std::move(sphere));
+        m_objects.push_back(std::move(pot));
     }
+
+//    float j = 0.0f;
+//    float k = 0.0f;
+//    for (int i=0; i<100; ++i)
+//    {
+//        /// create sphere
+//        auto sphere = std::make_unique<RenderObject>();
+//        if (i > 0 && i % 10 == 0)
+//        {
+//            j += 2.0f;
+//            k = 0.0f;
+//        }
+//        k += 2.0f;
+//        sphere->translate(j, k, 0.0f);
+//        sphere->setAnimRotation(5.0f);
+
+//        sphere->setCullFaceMode(true);
+
+//        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 5));
+
+//        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
+//        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
+
+//        m_objects.push_back(std::move(sphere));
+//    }
 
     {
         /// create plane
-        auto plane = std::make_unique<RenderObject>();
+//        auto plane = std::make_unique<RenderObject>();
 
-        plane->rotate(90.0f);
+//        plane->rotate(90.0f);
 
-        std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
-        mesh->addVertex({-8.0f, 0.0f, -8.0f});
-        mesh->addVertex({8.0f, 0.0f, -8.0f});
-        mesh->addVertex({8.0f, 0.0f, 8.0f});
-        mesh->addVertex({-8.0f, 0.0f, 8.0f});
+//        std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+//        mesh->addVertex({-8.0f, 0.0f, -8.0f});
+//        mesh->addVertex({8.0f, 0.0f, -8.0f});
+//        mesh->addVertex({8.0f, 0.0f, 8.0f});
+//        mesh->addVertex({-8.0f, 0.0f, 8.0f});
 
-        mesh->addFace({0, 1, 2});
-        mesh->addFace({2, 3, 0});
+//        mesh->addFace({0, 1, 2});
+//        mesh->addFace({2, 3, 0});
 
-        plane->setMesh(std::move(mesh));
+//        plane->setMesh(std::move(mesh));
 
-        plane->setVertexShader("../src/shaders/plane_vs.glsl");
-        plane->setFragmentShader("../src/shaders/texture_fs.glsl");
+//        plane->setVertexShader("../src/shaders/plane_vs.glsl");
+//        plane->setFragmentShader("../src/shaders/texture_fs.glsl");
 
-        auto tex = std::make_unique<Texture>();
-        if (tex->loadFromFile("../assets/textures/checker_board_128x128.png"))
-        {
-            tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
-            tex->setAnisotropicFilteringLevel(16);
-            tex->setWrappingST(GL_REPEAT, GL_REPEAT);
-            plane->setTexture(std::move(tex));
-        }
+//        auto tex = std::make_unique<Texture>();
+//        if (tex->loadFromFile("../assets/textures/checker_board_128x128.png"))
+//        {
+//            tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
+//            tex->setAnisotropicFilteringLevel(16);
+//            tex->setWrappingST(GL_REPEAT, GL_REPEAT);
+//            plane->setTexture(std::move(tex));
+//        }
 
-        m_objects.push_back(std::move(plane));
+//        m_objects.push_back(std::move(plane));
     }
 
     for (auto& obj: m_objects)
@@ -208,6 +232,7 @@ void OpenGLWindow::handle_log_message(const QOpenGLDebugMessage& msg)
 //    qDebug() << msg;
     if (msg.severity() == QOpenGLDebugMessage::HighSeverity)
     {
+        qDebug() << msg;
         throw std::runtime_error(msg.message().toStdString());
     }
 }
