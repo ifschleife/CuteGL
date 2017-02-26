@@ -6,44 +6,56 @@
 
 
 Mesh::Mesh()
-    : m_index_id{0}
-    , m_normal_id{0}
-    , m_vertex_id{0}
+    : m_index_buffer{0}
+    , m_normal_buffer{0}
+    , m_position_buffer{0}
 {
     initializeOpenGLFunctions();
 }
 
 void Mesh::initVBOs()
 {
-    glGenBuffers(1, &m_vertex_id);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertex_id);
+    glGenBuffers(1, &m_position_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m_position_buffer);
     glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(m_vertices[0]), m_vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenBuffers(1, &m_index_id);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_id);
+    glGenBuffers(1, &m_index_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(m_indices[0]), m_indices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glGenBuffers(1, &m_normal_id);
-    glBindBuffer(GL_ARRAY_BUFFER, m_normal_id);
-    glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(m_normals[0]), m_normals.data(), GL_STATIC_DRAW);
+    if (0 < m_normals.size())
+    {
+        glGenBuffers(1, &m_normal_buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
+        glBufferData(GL_ARRAY_BUFFER, m_normals.size() * sizeof(m_normals[0]), m_normals.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+}
+
+void Mesh::bindBuffers(const int position_location, const int normal_location)
+{
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_position_buffer);
+    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    if (0 < m_normal_buffer)
+    {
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, m_normal_buffer);
+        glVertexAttribPointer(normal_location, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    }
+}
+
+void Mesh::unbindBuffers()
+{
+    glEnableVertexAttribArray(0);
+    if (0 < m_normal_buffer)
+        glEnableVertexAttribArray(1);
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void Mesh::bind()
-{
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertex_id);
-}
-
-void Mesh::bind_normals()
-{
-    glBindBuffer(GL_ARRAY_BUFFER, m_normal_id);
-}
-
-void Mesh::unbind()
-{
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void Mesh::addFace(const std::array<uint32_t, 3>&& indices)
@@ -83,7 +95,7 @@ uint32_t Mesh::addNormalizedVertex(const Vec3D&& vertex)
 
 void Mesh::draw()
 {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer);
     glDrawElements(GL_TRIANGLES, 3 * (GLsizei)m_indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }

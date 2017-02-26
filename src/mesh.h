@@ -19,9 +19,8 @@ public:
 
     void initVBOs();
 
-    void bind();
-    void bind_normals();
-    void unbind();
+    void bindBuffers(const int position_location, const int normal_location);
+    void unbindBuffers();
 
     void addFace(const std::array<uint32_t, 3>&& indices);
     void addVertex(const Vec3D&& vertex);
@@ -35,12 +34,12 @@ public:
     static std::unique_ptr<Mesh> createSubDivSphere(float size, int level);
 
 private:
-    GLuint m_index_id;                              ///< gl id for vbo indices
+    GLuint m_index_buffer;                              ///< gl id for vbo indices
     std::vector<std::array<uint32_t, 3>> m_indices; ///< vbo indices
 
-    GLuint m_normal_id;
+    GLuint m_normal_buffer;
     std::vector<Vec3D> m_normals;
 
-    GLuint m_vertex_id;            ///< gl id for vbo vertices
+    GLuint m_position_buffer;            ///< gl id for vbo vertices
     std::vector<Vec3D> m_vertices; ///< vbo vertex positions
 };

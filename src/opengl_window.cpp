@@ -118,34 +118,34 @@ void OpenGLWindow::initializeGL()
 
     {
         /// create plane
-//        auto plane = std::make_unique<RenderObject>();
+        auto plane = std::make_unique<RenderObject>();
 
-//        plane->rotate(90.0f);
+        plane->rotate(90.0f);
 
-//        std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
-//        mesh->addVertex({-8.0f, 0.0f, -8.0f});
-//        mesh->addVertex({8.0f, 0.0f, -8.0f});
-//        mesh->addVertex({8.0f, 0.0f, 8.0f});
-//        mesh->addVertex({-8.0f, 0.0f, 8.0f});
+        std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+        mesh->addVertex({-8.0f, 0.0f, -8.0f});
+        mesh->addVertex({8.0f, 0.0f, -8.0f});
+        mesh->addVertex({8.0f, 0.0f, 8.0f});
+        mesh->addVertex({-8.0f, 0.0f, 8.0f});
 
-//        mesh->addFace({0, 1, 2});
-//        mesh->addFace({2, 3, 0});
+        mesh->addFace({0, 1, 2});
+        mesh->addFace({2, 3, 0});
 
-//        plane->setMesh(std::move(mesh));
+        plane->setMesh(std::move(mesh));
 
-//        plane->setVertexShader("../src/shaders/plane_vs.glsl");
-//        plane->setFragmentShader("../src/shaders/texture_fs.glsl");
+        plane->setVertexShader("../src/shaders/plane_vs.glsl");
+        plane->setFragmentShader("../src/shaders/texture_fs.glsl");
 
-//        auto tex = std::make_unique<Texture>();
-//        if (tex->loadFromFile("../assets/textures/checker_board_128x128.png"))
-//        {
-//            tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
-//            tex->setAnisotropicFilteringLevel(16);
-//            tex->setWrappingST(GL_REPEAT, GL_REPEAT);
-//            plane->setTexture(std::move(tex));
-//        }
+        auto tex = std::make_unique<Texture>();
+        if (tex->loadFromFile("../assets/textures/checker_board_128x128.png"))
+        {
+            tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
+            tex->setAnisotropicFilteringLevel(16);
+            tex->setWrappingST(GL_REPEAT, GL_REPEAT);
+            plane->setTexture(std::move(tex));
+        }
 
-//        m_objects.push_back(std::move(plane));
+        m_objects.push_back(std::move(plane));
     }
 
     for (auto& obj: m_objects)

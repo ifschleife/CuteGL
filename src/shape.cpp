@@ -66,9 +66,6 @@ void RenderObject::setWireframeMode(bool mode)
 
 void RenderObject::render(const QMatrix4x4& pv)
 {
-//    glDisable(GL_BLEND);
-//    glDisable(GL_LINE_SMOOTH);
-//    glDisable(GL_POLYGON_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -77,16 +74,9 @@ void RenderObject::render(const QMatrix4x4& pv)
     glPolygonMode(GL_FRONT_AND_BACK, m_show_wireframe ? GL_LINE : GL_FILL);
 
     m_shader.bind();
-    const int attrib_location = m_shader.attributeLocation("position");
-    glEnableVertexAttribArray(attrib_location);
-    m_mesh->bind();
-    glVertexAttribPointer(attrib_location, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-    const int normal = m_shader.attributeLocation("normal_in");
-    glEnableVertexAttribArray(normal);
-    m_mesh->bind_normals();
-    glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-//    m_mesh->unbind();
+    const int position_location = m_shader.attributeLocation("position");
+    const int normal_location = m_shader.attributeLocation("normal_in");
+    m_mesh->bindBuffers(position_location, normal_location);
 
     const QMatrix4x4 mvp = pv * m_model_matrix;
     m_shader.set_uniform_block_data((void*)&mvp, sizeof(mvp));
@@ -102,9 +92,7 @@ void RenderObject::render(const QMatrix4x4& pv)
         m_mesh->draw();
     }
 
-    glDisableVertexAttribArray(attrib_location);
-//    glDisableVertexAttribArray(normal);
-    m_mesh->unbind();
+    m_mesh->unbindBuffers();
     m_shader.unbind();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_CULL_FACE);
