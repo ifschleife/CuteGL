@@ -1,15 +1,10 @@
 #include "obj_parser.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
 #include "mesh.h"
 #include "util.h"
 
-#include <QDebug>
-
-#include <fstream>
-#include <set>
-#include <sstream>
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tinyobjloader/tiny_obj_loader.h>
 
 
 struct Vertex

@@ -6,6 +6,8 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
+include_directories(${CMAKE_HOME_DIRECTORY}/thirdparty)
+
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${RES_FILES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
