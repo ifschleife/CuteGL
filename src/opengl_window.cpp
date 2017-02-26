@@ -77,14 +77,16 @@ void OpenGLWindow::initializeGL()
 
     {
         auto parser = ObjParser();
-        auto mesh = parser.parse("../teapot.obj");
+        auto mesh = parser.parse("../assets/models/teapot/teapot.obj");
 
         auto pot = std::make_unique<RenderObject>();
-        pot->translate(0.0f, 4.0f, 1.0f);
+        pot->translate(0.0f, 4.0f, 0.5f);
         pot->setMesh(std::move(mesh));
 
         pot->setVertexShader("../src/shaders/normal_test_vs.glsl");
         pot->setFragmentShader("../src/shaders/normal_fs.glsl");
+
+        pot->rotate(90.0f);
 
         m_objects.push_back(std::move(pot));
     }
