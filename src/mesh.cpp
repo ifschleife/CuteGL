@@ -75,16 +75,6 @@ int Mesh::addVertex(const Vec3D&& vertex, const Vec3D&& normal)
     return m_vertices.size();
 }
 
-int Mesh::getVertexIndex(const Vec3D& vertex) const
-{
-    for (size_t i=0; i<m_vertices.size(); ++i)
-    {
-        if (m_vertices[i] == vertex)
-            return i;
-    }
-    return -1;
-}
-
 uint32_t Mesh::addNormalizedVertex(const Vec3D&& vertex)
 {
     const auto idx = static_cast<uint32_t>(m_vertices.size());

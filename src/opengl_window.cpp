@@ -78,6 +78,11 @@ void OpenGLWindow::initializeGL()
     {
         auto parser = ObjParser();
         auto mesh = parser.parse("../assets/models/teapot/teapot.obj");
+        if (!mesh)
+        {
+            qDebug() << "Could not load obj file!";
+            return;
+        }
 
         auto pot = std::make_unique<RenderObject>();
         pot->translate(0.0f, 4.0f, 0.5f);

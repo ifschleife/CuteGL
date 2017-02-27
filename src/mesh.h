@@ -25,7 +25,6 @@ public:
     void addFace(const std::array<uint32_t, 3>&& indices);
     void addVertex(const Vec3D&& vertex);
     int addVertex(const Vec3D&& vertex, const Vec3D&& normal);
-    int getVertexIndex(const Vec3D& vertex) const;
     uint32_t addNormalizedVertex(const Vec3D&& vertex);
     void draw();
     void scale(float factor);
