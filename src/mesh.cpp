@@ -68,11 +68,10 @@ void Mesh::addVertex(const Vec3D&& vertex)
     m_vertices.emplace_back(vertex);
 }
 
-int Mesh::addVertex(const Vec3D&& vertex, const Vec3D&& normal)
+void Mesh::addVertex(const Vec3D&& vertex, const Vec3D&& normal)
 {
     m_vertices.emplace_back(vertex);
     m_normals.emplace_back(normal);
-    return m_vertices.size();
 }
 
 uint32_t Mesh::addNormalizedVertex(const Vec3D&& vertex)
