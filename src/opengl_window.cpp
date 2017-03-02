@@ -77,23 +77,44 @@ void OpenGLWindow::initializeGL()
 
     {
         auto parser = ObjParser();
-        auto mesh = parser.parse("../assets/models/teapot/teapot.obj");
-        if (!mesh)
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+//        auto meshes = parser.parse("../assets/models/cube/cube.obj");
+//        auto meshes = parser.parse("../assets/models/teapot/teapot.obj");
+        auto meshes = parser.parse("../dragon.obj");
+//        auto meshes = parser.parse("../buddha.obj");
+//        auto meshes = parser.parse("../sportsCar.obj");
+//        auto meshes = parser.parse("../assets/hairball.obj");
+
+        if (meshes.empty())
         {
             qDebug() << "Could not load obj file!";
             return;
         }
 
-        auto pot = std::make_unique<RenderObject>();
-        pot->translate(0.0f, 4.0f, 0.5f);
-        pot->setMesh(std::move(mesh));
+        int vertex_count = 0;
+        int face_count = 0;
 
-        pot->setVertexShader("../src/shaders/normal_test_vs.glsl");
-        pot->setFragmentShader("../src/shaders/normal_fs.glsl");
+        for (std::unique_ptr<Mesh>& mesh: meshes)
+        {
+            auto obj = std::make_unique<RenderObject>();
+            obj->translate(0.0f, 4.0f, 0.5f);
+            obj->rotate(90.0f);
 
-        pot->rotate(90.0f);
+            obj->setVertexShader("../src/shaders/normal_test_vs.glsl");
+            obj->setFragmentShader("../src/shaders/normal_fs.glsl");
 
-        m_objects.push_back(std::move(pot));
+            vertex_count += mesh->getVertexCount();
+            face_count += mesh->getFaceCount();
+            obj->setMesh(std::move(mesh));
+
+            m_objects.push_back(std::move(obj));
+        }
+
+        qDebug() << "Loaded" << meshes.size() << "meshes with" << vertex_count
+                 << "vertices and" << face_count << " faces";
+        const auto end= std::chrono::steady_clock::now();
+        const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+        qDebug() << "Loading time:" << time_diff << "ms";
     }
 
 //    float j = 0.0f;

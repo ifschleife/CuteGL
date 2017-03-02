@@ -27,6 +27,8 @@ public:
     void addVertex(const Vec3D&& vertex, const Vec3D&& normal);
     uint32_t addNormalizedVertex(const Vec3D&& vertex);
     void draw();
+    uint32_t getVertexCount() const { return m_vertices.size(); }
+    uint32_t getFaceCount() const { return m_indices.size(); }
     void scale(float factor);
     void subDivide(uint_fast8_t level);
 

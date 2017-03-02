@@ -2,10 +2,11 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 
 class ObjParser
 {
 public:
-    std::unique_ptr<class Mesh> parse(const std::string& filename);
+    std::vector<std::unique_ptr<class Mesh>> parse(const std::string& filename);
 };
