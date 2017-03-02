@@ -74,6 +74,14 @@ void Mesh::addVertex(const Vec3D&& vertex, const Vec3D&& normal)
     m_normals.emplace_back(normal);
 }
 
+uint32_t Mesh::addVertex(const Vec3D& vertex, const Vec3D& normal)
+{
+    const auto idx = static_cast<uint32_t>(m_vertices.size());
+    m_vertices.emplace_back(vertex);
+    m_normals.emplace_back(normal);
+    return idx;
+}
+
 uint32_t Mesh::addNormalizedVertex(const Vec3D&& vertex)
 {
     const auto idx = static_cast<uint32_t>(m_vertices.size());
@@ -111,9 +119,12 @@ void Mesh::subDivide(uint_fast8_t level)
             const auto v2 = m_vertices[face[1]];
             const auto v3 = m_vertices[face[2]];
 
-            const auto v1_v2_idx = addNormalizedVertex(std::move((v1 + v2) / 2.0f));
-            const auto v2_v3_idx = addNormalizedVertex(std::move((v2 + v3) / 2.0f));
-            const auto v3_v1_idx = addNormalizedVertex(std::move((v3 + v1) / 2.0f));
+            Vec3D v1_v2{(v1 + v2) / 2.0f}; v1_v2.normalize();
+            const auto v1_v2_idx = addVertex(v1_v2, v1_v2);//std::move((v1 + v2) / 2.0f), std::move((v1 + v2) / 2.0f));
+            Vec3D v2_v3{(v2 + v3) / 2.0f}; v2_v3.normalize();
+            const auto v2_v3_idx = addVertex(v2_v3, v2_v3);//std::move((v2 + v3) / 2.0f), std::move((v2 + v3) / 2.0f));
+            Vec3D v3_v1{(v3 + v1) / 2.0f}; v3_v1.normalize();
+            const auto v3_v1_idx = addVertex(v3_v1, v3_v1);//std::move((v3 + v1) / 2.0f), std::move((v3 + v1) / 2.0f));
 
             new_faces.push_back({face[0], v1_v2_idx, v3_v1_idx});
             new_faces.push_back({v1_v2_idx, face[1], v2_v3_idx});
@@ -130,20 +141,32 @@ std::unique_ptr<Mesh> Mesh::createSubDivSphere(float size, int level)
     std::unique_ptr<Mesh> sphere = std::make_unique<Mesh>();
     const float t = (1.0f + std::sqrt(5.0f)) / 4.0f;
 
-    sphere->addNormalizedVertex({-0.5f, t, 0.0f});
-    sphere->addNormalizedVertex({0.5f, t, 0.0f});
-    sphere->addNormalizedVertex({-0.5f, -t, 0.0f});
-    sphere->addNormalizedVertex({0.5f, -t, 0.0f});
+    Vec3D vert = Vec3D{-0.5f, t, 0.0f}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{0.5f, t, 0.0f}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{-0.5f, -t, 0.0f}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{0.5f, -t, 0.0f}.normalized();
+    sphere->addVertex(vert, vert);
 
-    sphere->addNormalizedVertex({0.0f, -0.5f, t});
-    sphere->addNormalizedVertex({0.0f, 0.5f, t});
-    sphere->addNormalizedVertex({0.0f, -0.5f, -t});
-    sphere->addNormalizedVertex({0.0f, 0.5f, -t});
+    vert = Vec3D{0.0f, -0.5f, t}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{0.0f, 0.5f, t}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{0.0f, -0.5f, -t}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{0.0f, 0.5f, -t}.normalized();
+    sphere->addVertex(vert, vert);
 
-    sphere->addNormalizedVertex({t, 0.0f, -0.5f});
-    sphere->addNormalizedVertex({t, 0.0f, 0.5f});
-    sphere->addNormalizedVertex({-t, 0.0f, -0.5f});
-    sphere->addNormalizedVertex({-t, 0.0f, 0.5f});
+    vert = Vec3D{t, 0.0f, -0.5f}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{t, 0.0f, 0.5f}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{-t, 0.0f, -0.5f}.normalized();
+    sphere->addVertex(vert, vert);
+    vert = Vec3D{-t, 0.0f, 0.5f}.normalized();
+    sphere->addVertex(vert, vert);
 
     sphere->addFace({0, 11, 5});
     sphere->addFace({0, 5, 1});

@@ -15,6 +15,13 @@ void Vec3D::normalize()
     *this = *this / length();
 }
 
+Vec3D Vec3D::normalized() const
+{
+    Vec3D copy(*this);
+    copy.normalize();
+    return copy;
+}
+
 Vec3D operator+(const Vec3D& lhs, const Vec3D& rhs)
 {
     return {lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z};

@@ -29,6 +29,7 @@ struct Vec3D
 
     float length() const;
     void normalize();
+    Vec3D normalized() const;
 
     friend Vec3D operator+(const Vec3D& lhs, const Vec3D& rhs);
     friend Vec3D operator/(const Vec3D& lhs, const Vec3D& rhs);

@@ -100,7 +100,7 @@ void OpenGLWindow::initializeGL()
             obj->translate(0.0f, 4.0f, 0.5f);
             obj->rotate(90.0f);
 
-            obj->setVertexShader("../src/shaders/normal_test_vs.glsl");
+            obj->setVertexShader("../src/shaders/normal_vs.glsl");
             obj->setFragmentShader("../src/shaders/normal_fs.glsl");
 
             vertex_count += mesh->getVertexCount();
@@ -117,30 +117,30 @@ void OpenGLWindow::initializeGL()
         qDebug() << "Loading time:" << time_diff << "ms";
     }
 
-//    float j = 0.0f;
-//    float k = 0.0f;
-//    for (int i=0; i<100; ++i)
-//    {
-//        /// create sphere
-//        auto sphere = std::make_unique<RenderObject>();
-//        if (i > 0 && i % 10 == 0)
-//        {
-//            j += 2.0f;
-//            k = 0.0f;
-//        }
-//        k += 2.0f;
-//        sphere->translate(j, k, 0.0f);
-//        sphere->setAnimRotation(5.0f);
+    float j = 0.0f;
+    float k = 0.0f;
+    for (int i=0; i<10; ++i)
+    {
+        /// create sphere
+        auto sphere = std::make_unique<RenderObject>();
+        if (i > 0 && i % 10 == 0)
+        {
+            j += 2.0f;
+            k = 0.0f;
+        }
+        k += 2.0f;
+        sphere->translate(j, k, 0.0f);
+        sphere->setAnimRotation(5.0f);
 
-//        sphere->setCullFaceMode(true);
+        sphere->setCullFaceMode(true);
 
-//        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 5));
+        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 4));
 
-//        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
-//        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
+        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
+        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
 
-//        m_objects.push_back(std::move(sphere));
-//    }
+        m_objects.push_back(std::move(sphere));
+    }
 
     {
         /// create plane
