@@ -1330,7 +1330,7 @@ bool MaterialFileReader::operator()(const std::string &matId,
   std::string filepath;
 
   if (!m_mtlBaseDir.empty()) {
-    filepath = std::string(m_mtlBaseDir) + matId;
+    filepath = std::string(m_mtlBaseDir) + '/' + matId;
   } else {
     filepath = matId;
   }
