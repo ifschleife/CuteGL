@@ -5,10 +5,24 @@
 
 #include <QDebug>
 #include <QFileInfo>
+
+#include <functional>
 #include <unordered_map>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
+
+
+namespace
+{
+    struct VertexHasher
+    {
+         std::size_t operator()(const std::array<int, 3>& vtx) const
+         {
+             return std::hash<int>()(vtx[0]) + std::hash<int>()(vtx[1]) + std::hash<int>()(vtx[2]);
+         }
+    };
+}
 
 
 std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
@@ -39,7 +53,7 @@ std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
             if (-1 != mat_id && !materials[mat_id].diffuse_texname.empty())
                 mesh->setMaterial(obj_path + '/' + materials[mat_id].diffuse_texname);
         }
-        std::unordered_map<uint64_t, int> unique_indices;
+        std::unordered_map<std::array<int, 3>, int, VertexHasher> unique_indices;
         unique_indices.reserve(shapes[s].mesh.indices.size());
 
         // Loop over faces(polygon)
@@ -56,10 +70,9 @@ std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 
                 const int gl_index = unique_indices.size();
-                // super naive hashing which will cause collisions if vertex count is very high
-                const uint64_t hash = 10000*std::abs(idx.vertex_index) + 100*std::abs(idx.texcoord_index) + std::abs(idx.normal_index);
+                const std::array<int, 3> vtx_key = {idx.vertex_index, idx.texcoord_index, idx.normal_index};
 
-                const auto result = unique_indices.emplace(hash, gl_index);
+                const auto result = unique_indices.emplace(vtx_key, gl_index);
                 if (result.second) // vertex index was inserted = first occurence
                 {
                     face[v] = gl_index;
