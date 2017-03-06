@@ -76,7 +76,8 @@ void RenderObject::render(const QMatrix4x4& pv)
     m_shader.bind();
     const int position_location = m_shader.attributeLocation("position");
     const int normal_location = m_shader.attributeLocation("normal_in");
-    m_mesh->bindBuffers(position_location, normal_location);
+    const int texcoord_location = m_shader.attributeLocation("texcoord_in");
+    m_mesh->bindBuffers(position_location, normal_location, texcoord_location);
 
     const QMatrix4x4 mvp = pv * m_model_matrix;
     m_shader.set_uniform_block_data((void*)&mvp, sizeof(mvp));

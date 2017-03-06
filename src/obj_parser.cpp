@@ -3,6 +3,8 @@
 #include "mesh.h"
 #include "util.h"
 
+#include <QDebug>
+#include <QFileInfo>
 #include <unordered_map>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -15,23 +17,34 @@ std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
 
-    std::vector<std::unique_ptr<Mesh>> meshes;
+    const std::string obj_path = QFileInfo(filename.c_str()).absolutePath().toUtf8().constData();
 
     std::string err;
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename.c_str()))
-        return meshes;
+    const bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename.c_str(), obj_path.c_str());
+    qDebug() << err.c_str();
+    if (!ret)
+        return {};
 
+    std::vector<std::unique_ptr<Mesh>> meshes;
     meshes.reserve(shapes.size());
 
     for (size_t s = 0; s < shapes.size(); s++)
     {
         std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
+
+        const size_t face_count = shapes[s].mesh.num_face_vertices.size();
+        if (face_count >= 1)
+        {
+            const int mat_id = shapes[s].mesh.material_ids[0]; // assuming all faces in mesh have the same material
+            if (-1 != mat_id && !materials[mat_id].diffuse_texname.empty())
+                mesh->setMaterial(obj_path + '/' + materials[mat_id].diffuse_texname);
+        }
         std::unordered_map<uint64_t, int> unique_indices;
         unique_indices.reserve(shapes[s].mesh.indices.size());
 
         // Loop over faces(polygon)
         size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
+        for (size_t f = 0; f < face_count; f++)
         {
             const int fv = shapes[s].mesh.num_face_vertices[f];
             std::array<uint32_t, 3> face;
@@ -44,7 +57,7 @@ std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
 
                 const int gl_index = unique_indices.size();
                 // super naive hashing which will cause collisions if vertex count is very high
-                const uint64_t hash = 10000*std::abs(idx.vertex_index) + 100* std::abs(idx.texcoord_index) + std::abs(idx.normal_index);
+                const uint64_t hash = 10000*std::abs(idx.vertex_index) + 100*std::abs(idx.texcoord_index) + std::abs(idx.normal_index);
 
                 const auto result = unique_indices.emplace(hash, gl_index);
                 if (result.second) // vertex index was inserted = first occurence
@@ -54,16 +67,20 @@ std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
                     const float vx = attrib.vertices[3 * idx.vertex_index + 0];
                     const float vy = attrib.vertices[3 * idx.vertex_index + 1];
                     const float vz = attrib.vertices[3 * idx.vertex_index + 2];
+                    mesh->addVertexPosition(vx, vy, vz);
+
                     if (idx.normal_index != -1)
                     {
                         const float nx = attrib.normals[3 * idx.normal_index + 0];
                         const float ny = attrib.normals[3 * idx.normal_index + 1];
                         const float nz = attrib.normals[3 * idx.normal_index + 2];
-                        mesh->addVertex({vx, vy, vz}, {nx, ny, nz});
+                        mesh->addVertexNormal(nx, ny, nz);
                     }
-                    else
+                    if (idx.texcoord_index != -1)
                     {
-                        mesh->addVertex({vx, vy, vz});
+                        const float tx = attrib.texcoords[2*idx.texcoord_index+0];
+                        const float ty = attrib.texcoords[2*idx.texcoord_index+1];
+                        mesh->addVertexTexCoord(tx, ty);
                     }
                 }
                 else
@@ -76,8 +93,6 @@ std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
 
             mesh->addFace(std::move(face));
 
-            // per-face material
-            shapes[s].mesh.material_ids[f];
         }
 
         meshes.push_back(std::move(mesh));

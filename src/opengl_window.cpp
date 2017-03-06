@@ -1,5 +1,6 @@
 #include "opengl_window.h"
 
+#include <QDebug>
 #include <QOpenGLDebugLogger>
 #include <QOpenGLShaderProgram>
 #include <QScreen>
@@ -79,11 +80,7 @@ void OpenGLWindow::initializeGL()
         auto parser = ObjParser();
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 //        auto meshes = parser.parse("../assets/models/cube/cube.obj");
-//        auto meshes = parser.parse("../assets/models/teapot/teapot.obj");
-        auto meshes = parser.parse("../dragon.obj");
-//        auto meshes = parser.parse("../buddha.obj");
-//        auto meshes = parser.parse("../sportsCar.obj");
-//        auto meshes = parser.parse("../assets/hairball.obj");
+        auto meshes = parser.parse("../assets/models/teapot/teapot.obj");
 
         if (meshes.empty())
         {
@@ -101,10 +98,29 @@ void OpenGLWindow::initializeGL()
             obj->rotate(90.0f);
 
             obj->setVertexShader("../src/shaders/normal_vs.glsl");
-            obj->setFragmentShader("../src/shaders/normal_fs.glsl");
 
             vertex_count += mesh->getVertexCount();
             face_count += mesh->getFaceCount();
+            if (!mesh->getMaterial().empty())
+            {
+                auto tex = std::make_unique<Texture>();
+                if (tex->loadFromFile(mesh->getMaterial()))
+                {
+                    tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
+                    tex->setWrappingST(GL_REPEAT, GL_REPEAT);
+                    obj->setTexture(std::move(tex));
+                }
+                else
+                {
+                    qDebug() << "Could not load texture" << mesh->getMaterial().c_str();
+                    return;
+                }
+                obj->setFragmentShader("../src/shaders/texture_fs.glsl");
+            }
+            else
+            {
+                obj->setFragmentShader("../src/shaders/normal_fs.glsl");
+            }
             obj->setMesh(std::move(mesh));
 
             m_objects.push_back(std::move(obj));
@@ -119,7 +135,7 @@ void OpenGLWindow::initializeGL()
 
     float j = 0.0f;
     float k = 0.0f;
-    for (int i=0; i<10; ++i)
+    for (int i=0; i<0; ++i)
     {
         /// create sphere
         auto sphere = std::make_unique<RenderObject>();
@@ -149,17 +165,13 @@ void OpenGLWindow::initializeGL()
         plane->rotate(90.0f);
 
         std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
-        mesh->addVertex({-8.0f, 0.0f, -8.0f});
-        mesh->addVertex({8.0f, 0.0f, -8.0f});
-        mesh->addVertex({8.0f, 0.0f, 8.0f});
-        mesh->addVertex({-8.0f, 0.0f, 8.0f});
-
+        mesh->addVertexPositions({{-8.0f, 0.0f, -8.0f}, {8.0f, 0.0f, -8.0f}, {8.0f, 0.0f, 8.0f}, {-8.0f, 0.0f, 8.0f}});
+        mesh->addVertexTexCoords({{-8.0f, -8.0f}, {8.0f, -8.0f}, {8.0f, 8.0f}, {-8.0f, 8.0f}});
         mesh->addFace({0, 1, 2});
         mesh->addFace({2, 3, 0});
-
         plane->setMesh(std::move(mesh));
 
-        plane->setVertexShader("../src/shaders/plane_vs.glsl");
+        plane->setVertexShader("../src/shaders/normal_vs.glsl");
         plane->setFragmentShader("../src/shaders/texture_fs.glsl");
 
         auto tex = std::make_unique<Texture>();
