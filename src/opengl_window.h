@@ -31,6 +31,8 @@ public:
     void initializeGL() override;
     void paintGL() override;
 
+    void loadObject(const QString& obj_file);
+
 signals:
     void frameTime(float time_in_ms);
 

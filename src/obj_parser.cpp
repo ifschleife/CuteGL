@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QFileInfo>
+#include <QString>
 
 #include <functional>
 #include <unordered_map>
@@ -25,16 +26,16 @@ namespace
 }
 
 
-std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const std::string& filename)
+std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const QString& filename)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
 
-    const std::string obj_path = QFileInfo(filename.c_str()).absolutePath().toUtf8().constData();
+    const std::string obj_path = QFileInfo(filename).absolutePath().toUtf8().constData();
 
     std::string err;
-    const bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename.c_str(), obj_path.c_str());
+    const bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename.toUtf8().constData(), obj_path.c_str());
     qDebug() << err.c_str();
     if (!ret)
         return {};

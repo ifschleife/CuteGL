@@ -5,6 +5,7 @@
 #include "opengl_window.h"
 #include "util.h"
 
+#include <QFileDialog>
 #include <QKeyEvent>
 #include <QTime>
 #include <QTimer>
@@ -118,6 +119,15 @@ void MainWindow::updateCameraTranslation()
     m_glWindow->m_camera.move_backward(backward_step);
     m_glWindow->m_camera.move_left(left_step);
     m_glWindow->m_camera.move_right(right_step);
+}
+
+void MainWindow::on_LoadObject_triggered()
+{
+    const QString obj_file = QFileDialog::getOpenFileName(this, "Select Object", "..", "Wavefront Object File (*.obj)");
+    if (obj_file.isNull())
+        return;
+
+    m_glWindow->loadObject(obj_file);
 }
 
 void MainWindow::onRightMouseButtonPress()

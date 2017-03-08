@@ -76,87 +76,6 @@ void OpenGLWindow::initializeGL()
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    {
-        auto parser = ObjParser();
-        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-//        auto meshes = parser.parse("../assets/models/cube/cube.obj");
-        auto meshes = parser.parse("../assets/models/teapot/teapot.obj");
-
-        if (meshes.empty())
-        {
-            qDebug() << "Could not load obj file!";
-            return;
-        }
-
-        int vertex_count = 0;
-        int face_count = 0;
-
-        for (std::unique_ptr<Mesh>& mesh: meshes)
-        {
-            auto obj = std::make_unique<RenderObject>();
-            obj->translate(0.0f, 4.0f, 0.5f);
-            obj->rotate(90.0f);
-
-            obj->setVertexShader("../src/shaders/normal_vs.glsl");
-
-            vertex_count += mesh->getVertexCount();
-            face_count += mesh->getFaceCount();
-            if (!mesh->getMaterial().empty())
-            {
-                auto tex = std::make_unique<Texture>();
-                if (tex->loadFromFile(mesh->getMaterial()))
-                {
-                    tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
-                    tex->setWrappingST(GL_REPEAT, GL_REPEAT);
-                    obj->setTexture(std::move(tex));
-                }
-                else
-                {
-                    qDebug() << "Could not load texture" << mesh->getMaterial().c_str();
-                    return;
-                }
-                obj->setFragmentShader("../src/shaders/texture_fs.glsl");
-            }
-            else
-            {
-                obj->setFragmentShader("../src/shaders/normal_fs.glsl");
-            }
-            obj->setMesh(std::move(mesh));
-
-            m_objects.push_back(std::move(obj));
-        }
-
-        qDebug() << "Loaded" << meshes.size() << "meshes with" << vertex_count
-                 << "vertices and" << face_count << " faces";
-        const auto end= std::chrono::steady_clock::now();
-        const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-        qDebug() << "Loading time:" << time_diff << "ms";
-    }
-
-    float j = 0.0f;
-    float k = 0.0f;
-    for (int i=0; i<0; ++i)
-    {
-        /// create sphere
-        auto sphere = std::make_unique<RenderObject>();
-        if (i > 0 && i % 10 == 0)
-        {
-            j += 2.0f;
-            k = 0.0f;
-        }
-        k += 2.0f;
-        sphere->translate(j, k, 0.0f);
-        sphere->setAnimRotation(5.0f);
-
-        sphere->setCullFaceMode(true);
-
-        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 4));
-
-        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
-        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
-
-        m_objects.push_back(std::move(sphere));
-    }
 
     {
         /// create plane
@@ -186,6 +105,31 @@ void OpenGLWindow::initializeGL()
         m_objects.push_back(std::move(plane));
     }
 
+    float j = 0.0f;
+    float k = 0.0f;
+    for (int i=0; i<0; ++i)
+    {
+        /// create sphere
+        auto sphere = std::make_unique<RenderObject>();
+        if (i > 0 && i % 10 == 0)
+        {
+            j += 2.0f;
+            k = 0.0f;
+        }
+        k += 2.0f;
+        sphere->translate(j, k, 0.0f);
+        sphere->setAnimRotation(5.0f);
+
+        sphere->setCullFaceMode(true);
+
+        sphere->setMesh(Mesh::createSubDivSphere(0.5f, 4));
+
+        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
+        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
+
+        m_objects.push_back(std::move(sphere));
+    }
+
     for (auto& obj: m_objects)
     {
         obj->initGL();
@@ -194,6 +138,64 @@ void OpenGLWindow::initializeGL()
     m_frame_timer->start();
 }
 
+void OpenGLWindow::loadObject(const QString& obj_file)
+{
+    const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    const auto parser = ObjParser();
+    auto meshes = parser.parse(obj_file);
+    if (meshes.empty())
+    {
+        qDebug() << "Could not load obj file!";
+        return;
+    }
+
+    int vertex_count = 0;
+    int face_count = 0;
+
+    for (std::unique_ptr<Mesh>& mesh: meshes)
+    {
+        auto obj = std::make_unique<RenderObject>();
+        obj->translate(0.0f, 4.0f, 0.5f);
+        obj->rotate(90.0f);
+
+        obj->setVertexShader("../src/shaders/normal_vs.glsl");
+
+        vertex_count += mesh->getVertexCount();
+        face_count += mesh->getFaceCount();
+//            mesh->scale(0.01f);
+        if (!mesh->getMaterial().empty())
+        {
+            auto tex = std::make_unique<Texture>();
+            if (tex->loadFromFile(mesh->getMaterial()))
+            {
+                tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
+                tex->setWrappingST(GL_REPEAT, GL_REPEAT);
+                obj->setTexture(std::move(tex));
+            }
+            else
+            {
+                qDebug() << "Could not load texture" << mesh->getMaterial().c_str();
+                return;
+            }
+            obj->setFragmentShader("../src/shaders/texture_fs.glsl");
+        }
+        else
+        {
+            obj->setFragmentShader("../src/shaders/normal_fs.glsl");
+        }
+        obj->setMesh(std::move(mesh));
+
+        obj->initGL();
+        m_objects.push_back(std::move(obj));
+    }
+
+    qDebug() << "Loaded" << meshes.size() << "meshes with" << vertex_count
+             << "vertices and" << face_count << " faces";
+    const auto end= std::chrono::steady_clock::now();
+    const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
+    qDebug() << "Loading time:" << time_diff << "ms";
+}
 
 void OpenGLWindow::paintGL()
 {
@@ -217,7 +219,6 @@ void OpenGLWindow::paintGL()
             object->render(pv);
         }
     }
-
 
     // switch back to back buffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
