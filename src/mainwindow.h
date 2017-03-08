@@ -30,7 +30,7 @@ private slots:
     void main_loop();
 
     void onRightMouseButtonPress();
-    void on_LoadObject_triggered();
+    void on_actionLoadObject_triggered();
 
 private:
     std::unique_ptr<OpenGLWindow> m_glWindow;

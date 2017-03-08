@@ -26,7 +26,7 @@ namespace
 }
 
 
-std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const QString& filename)
+std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const QString& filename) const
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;

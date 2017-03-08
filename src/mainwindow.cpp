@@ -30,6 +30,8 @@ MainWindow::MainWindow(QWidget* parent /*=0*/)
     m_glWindow->setFormat(format);
     m_glWindow->resize(1024, 768);
 
+    connect(m_ui->actionQuit, &QAction::triggered, this, &QMainWindow::close);
+
     QWidget* glContainer = QWidget::createWindowContainer(m_glWindow.get(), this);
     m_ui->mainLayout->replaceWidget(m_ui->glWidgetContainer, glContainer, Qt::FindDirectChildrenOnly);
 
@@ -121,7 +123,7 @@ void MainWindow::updateCameraTranslation()
     m_glWindow->m_camera.move_right(right_step);
 }
 
-void MainWindow::on_LoadObject_triggered()
+void MainWindow::on_actionLoadObject_triggered()
 {
     const QString obj_file = QFileDialog::getOpenFileName(this, "Select Object", "..", "Wavefront Object File (*.obj)");
     if (obj_file.isNull())

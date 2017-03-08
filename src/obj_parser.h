@@ -6,5 +6,5 @@
 class ObjParser
 {
 public:
-    std::vector<std::unique_ptr<class Mesh>> parse(const class QString& filename);
+    std::vector<std::unique_ptr<class Mesh>> parse(const class QString& filename) const;
 };
