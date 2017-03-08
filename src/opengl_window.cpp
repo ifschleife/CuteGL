@@ -11,9 +11,9 @@
 #include <math.h>
 #include <stdexcept>
 
+#include "asset_loader.h"
 #include "framebuffer.h"
 #include "mesh.h"
-#include "obj_parser.h"
 #include "shader.h"
 #include "texture.h"
 #include "util.h"
@@ -142,8 +142,7 @@ void OpenGLWindow::loadObject(const QString& obj_file)
 {
     const std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    const auto parser = ObjParser();
-    auto meshes = parser.parse(obj_file);
+    auto meshes = AssetLoader::loadObj(obj_file);
     if (meshes.empty())
     {
         qDebug() << "Could not load obj file!";

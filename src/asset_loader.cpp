@@ -1,4 +1,4 @@
-#include "obj_parser.h"
+#include "asset_loader.h"
 
 #include "mesh.h"
 #include "util.h"
@@ -26,7 +26,7 @@ namespace
 }
 
 
-std::vector<std::unique_ptr<Mesh>> ObjParser::parse(const QString& filename) const
+std::vector<std::unique_ptr<Mesh>> AssetLoader::loadObj(const QString& filename)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
