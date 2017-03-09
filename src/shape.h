@@ -22,6 +22,7 @@ public:
     void render(const QMatrix4x4& pv);
 
     void rotate(float angle);
+    void translate(const Vec3D& pos);
     void translate(float x, float y, float z);
 
     void setAnimRotation(float angle);

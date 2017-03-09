@@ -149,13 +149,14 @@ void OpenGLWindow::loadObject(const QString& obj_file)
         return;
     }
 
+    const Vec3D new_obj_pos = (m_camera.getPosition() + m_camera.getViewDirection());
+
     int vertex_count = 0;
     int face_count = 0;
-
     for (std::unique_ptr<Mesh>& mesh: meshes)
     {
         auto obj = std::make_unique<RenderObject>();
-        obj->translate(0.0f, 4.0f, 0.5f);
+        obj->translate(new_obj_pos);
         obj->rotate(90.0f);
 
         obj->setVertexShader("../src/shaders/normal_vs.glsl");

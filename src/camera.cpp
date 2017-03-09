@@ -20,6 +20,16 @@ const QMatrix4x4& Camera::get_view() const
     return m_view_matrix;
 }
 
+Vec3D Camera::getPosition() const
+{
+    return Vec3D{m_pos.x(), m_pos.y(), m_pos.z()};
+}
+
+Vec3D Camera::getViewDirection() const
+{
+    return Vec3D{m_view_dir.x(), m_view_dir.y(), m_view_dir.z()};
+}
+
 void Camera::change_pitch(float angle)
 {
     m_pitch += angle;

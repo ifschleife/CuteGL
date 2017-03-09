@@ -34,6 +34,11 @@ void RenderObject::rotate(float angle)
     m_model_matrix.rotate(angle, {1.0f, 0.0f, 0.0f});
 }
 
+void RenderObject::translate(const Vec3D& pos)
+{
+    translate(pos.x, pos.y, pos.z);
+}
+
 void RenderObject::translate(float x, float y, float z)
 {
     m_model_matrix.translate(x, y, z);
