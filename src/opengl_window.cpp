@@ -1,9 +1,11 @@
 #include "opengl_window.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QOpenGLDebugLogger>
 #include <QOpenGLShaderProgram>
 #include <QScreen>
+#include <QSettings>
 #include <QTimer>
 #include <QtMath>
 
@@ -24,6 +26,12 @@ namespace
     const float ANIMATION_SPEED = 5.0f;
     const uint_fast16_t RESOLUTION_WIDTH = 1920;
     const uint_fast16_t RESOLUTION_HEIGHT = 1080;
+
+    QString getShaderPath(const QString& fname)
+    {
+        static QSettings settings;
+        return QDir::cleanPath(settings.value("path/shaders").toString() + '/' + fname);
+    }
 }
 
 
@@ -56,8 +64,8 @@ void OpenGLWindow::initializeGL()
 
     // shaders for framebuffer quad
     m_post_process_shader = std::make_unique<Shader>();
-    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, "../src/shaders/post_process_vs.glsl");
-    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, "../src/shaders/post_process_fs.glsl");
+    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, getShaderPath("post_process_vs.glsl"));
+    m_post_process_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, getShaderPath("post_process_fs.glsl"));
     if (!m_post_process_shader->link())
     {
         qDebug() << m_post_process_shader->log();
@@ -90,11 +98,11 @@ void OpenGLWindow::initializeGL()
         mesh->addFace({2, 3, 0});
         plane->setMesh(std::move(mesh));
 
-        plane->setVertexShader("../src/shaders/normal_vs.glsl");
-        plane->setFragmentShader("../src/shaders/texture_fs.glsl");
+        plane->setVertexShader(getShaderPath("normal_vs.glsl"));
+        plane->setFragmentShader(getShaderPath("texture_fs.glsl"));
 
         auto tex = std::make_unique<Texture>();
-        if (tex->loadFromFile("../assets/textures/checker_board_128x128.png"))
+        if (tex->loadFromFile("assets/textures/checker_board_128x128.png"))
         {
             tex->setMinMagFilters(GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
             tex->setAnisotropicFilteringLevel(16);
@@ -124,8 +132,8 @@ void OpenGLWindow::initializeGL()
 
         sphere->setMesh(Mesh::createSubDivSphere(0.5f, 4));
 
-        sphere->setVertexShader("../src/shaders/normal_vs.glsl");
-        sphere->setFragmentShader("../src/shaders/normal_fs.glsl");
+        sphere->setVertexShader(getShaderPath("normal_vs.glsl"));
+        sphere->setFragmentShader(getShaderPath("normal_fs.glsl"));
 
         m_objects.push_back(std::move(sphere));
     }
@@ -159,7 +167,7 @@ void OpenGLWindow::loadObject(const QString& obj_file)
         obj->translate(new_obj_pos);
         obj->rotate(90.0f);
 
-        obj->setVertexShader("../src/shaders/normal_vs.glsl");
+        obj->setVertexShader(getShaderPath("normal_vs.glsl"));
 
         vertex_count += mesh->getVertexCount();
         face_count += mesh->getFaceCount();
@@ -178,11 +186,11 @@ void OpenGLWindow::loadObject(const QString& obj_file)
                 qDebug() << "Could not load texture" << mesh->getMaterial().c_str();
                 return;
             }
-            obj->setFragmentShader("../src/shaders/texture_fs.glsl");
+            obj->setFragmentShader(getShaderPath("texture_fs.glsl"));
         }
         else
         {
-            obj->setFragmentShader("../src/shaders/normal_fs.glsl");
+            obj->setFragmentShader(getShaderPath("normal_fs.glsl"));
         }
         obj->setMesh(std::move(mesh));
 

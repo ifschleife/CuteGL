@@ -6,7 +6,9 @@
 #include "util.h"
 
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QKeyEvent>
+#include <QSettings>
 #include <QTime>
 #include <QTimer>
 
@@ -125,9 +127,17 @@ void MainWindow::updateCameraTranslation()
 
 void MainWindow::on_actionLoadObject_triggered()
 {
-    const QString obj_file = QFileDialog::getOpenFileName(this, "Select Object", "..", "Wavefront Object File (*.obj)");
+    QSettings settings;
+    QString search_path = settings.value("path/last").toString();
+    if (search_path.isNull())
+        search_path = settings.value("path/assets").toString();
+
+    const QString obj_file = QFileDialog::getOpenFileName(this, "Select Object", search_path,
+                                                          "Wavefront Object File (*.obj)");
     if (obj_file.isNull())
         return;
+
+    settings.setValue("path/last", QFileInfo(obj_file).absolutePath());
 
     m_glWindow->loadObject(obj_file);
 }
