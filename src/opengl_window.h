@@ -1,14 +1,11 @@
 #pragma once
 
-#include <QMatrix4x4>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLWindow>
 
-#include <chrono>
 #include <memory>
 
 #include "camera.h"
-#include "shape.h"
 
 
 class Framebuffer;

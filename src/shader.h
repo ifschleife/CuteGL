@@ -3,9 +3,6 @@
 #include <QOpenGLFunctions_4_5_Core>
 #include <QOpenGLShaderProgram>
 
-#include <map>
-#include <string>
-
 
 class Shader : public QOpenGLShaderProgram, protected QOpenGLFunctions_4_5_Core
 {

@@ -17,6 +17,7 @@
 #include "framebuffer.h"
 #include "mesh.h"
 #include "shader.h"
+#include "shape.h"
 #include "texture.h"
 #include "util.h"
 
