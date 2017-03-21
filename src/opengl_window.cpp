@@ -99,8 +99,8 @@ void OpenGLWindow::initializeGL()
         mesh->addFace({2, 3, 0});
         plane->setMesh(std::move(mesh));
 
-        plane->setVertexShader(getShaderPath("normal_vs.glsl"));
-        plane->setFragmentShader(getShaderPath("texture_fs.glsl"));
+        plane->setVertexShader(getShaderPath("texture_noshade_vs.glsl"));
+        plane->setFragmentShader(getShaderPath("texture_noshade_fs.glsl"));
 
         auto tex = std::make_unique<Texture>();
         if (tex->loadFromFile("assets/textures/checker_board_128x128.png"))
