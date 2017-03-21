@@ -168,8 +168,6 @@ void OpenGLWindow::loadObject(const QString& obj_file)
         obj->translate(new_obj_pos);
         obj->rotate(90.0f);
 
-        obj->setVertexShader(getShaderPath("normal_vs.glsl"));
-
         vertex_count += mesh->getVertexCount();
         face_count += mesh->getFaceCount();
 //            mesh->scale(0.01f);
@@ -187,10 +185,12 @@ void OpenGLWindow::loadObject(const QString& obj_file)
                 qDebug() << "Could not load texture" << mesh->getMaterial().c_str();
                 return;
             }
-            obj->setFragmentShader(getShaderPath("texture_fs.glsl"));
+            obj->setVertexShader(getShaderPath("texture_noshade_vs.glsl"));
+            obj->setFragmentShader(getShaderPath("texture_noshade_fs.glsl"));
         }
         else
         {
+            obj->setVertexShader(getShaderPath("normal_vs.glsl"));
             obj->setFragmentShader(getShaderPath("normal_fs.glsl"));
         }
         obj->setMesh(std::move(mesh));
