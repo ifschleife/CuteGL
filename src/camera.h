@@ -11,9 +11,9 @@ public:
     void change_pitch(float angle);
     void change_yaw(float angle);
 
-    class Vec3D getPosition() const;
+    struct Vec3D getPosition() const;
     const QMatrix4x4& get_view() const;
-    class Vec3D getViewDirection() const;
+    struct Vec3D getViewDirection() const;
 
     void move_backward(float dist);
     void move_forward(float dist);
