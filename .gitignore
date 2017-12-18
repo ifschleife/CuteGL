@@ -43,3 +43,6 @@ bin/*
 
 *.swp
 CMakeLists.txt.user
+build_vs2017/
+.vs/
+CMakeSettings.json
